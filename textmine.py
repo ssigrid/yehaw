@@ -14,8 +14,12 @@ def main():
     url_decoded = request.urlopen(url).read().decode('utf8')
     souptext = BeautifulSoup(url_decoded, 'html.parser')
     ronanews = souptext.find("div", class_="GridSystem__GridCell-sc-15162af-0 fUiKQy")
-    for headline in ronanews.find_all(['h3', 'h6']):
-        print(headline.string)
-        print()
+    try:
+        for headline in ronanews.find_all(['h3', 'h6']):
+            print(headline.string)
+            print()
+
+    except URLError:
+        print(Error: There was a problem opening the url.)
     
 main()
