@@ -20,6 +20,6 @@ def main():
             print()
 
     except URLError:
-        print(Error: There was a problem opening the url.)
+        print("Error: There was a problem opening the url.")
     
 main()
