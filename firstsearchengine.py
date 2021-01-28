@@ -1,16 +1,18 @@
-# selvittää looppiin tarvitaan
-        # pyytää antamaan test_query tyylisen sisällön? ja nollalla lopettaa
-# miten avata tiedosto linkistä
-# tiedoston lukeminen
-# tiedoston jako artikkeleihin
-# artikkelien jako stringeiksi
-# tiedoston sulkeminen
+#näitä tehtävänjakoja voi poistaa kun on tehty
+
+# miten avata tiedosto linkistä eli ohjeiden kohta 5
+    # tiedoston lukeminen
+    # tiedoston jako artikkeleihin
+    # artikkelien jako stringeiksi
+    # tiedoston sulkeminen
+
+
 # kohta 2 ohjeista
 # kohta 3 ohejista
 # kohta 4 ohjeista
-# kohta 5 ohjeista
-## tarviiko main ohjelmaa ollenkaan vaikka se tuolla nyt on
-# sijottaa sijotettavat minne kuuluu
+
+
+# mainin toiminta? jos on aikaa
 
 
 
@@ -39,8 +41,6 @@ def test_query(query):
 from sklearn.feature_extraction.text import CountVectorizer
 
 
-
-    ## oletan et read_file pitää määrätä täällä, mut voi olla et pitää eka kysyy kumpi tiedosto
 documents = ["This is a silly example",
              "A better example",
              "Nothing to see here",
@@ -55,8 +55,6 @@ terms = cv.get_feature_names()
 t2i = cv.vocabulary_
 
 
-    # looppi toimii,
-    # mutta mitä queryä tähän piti laittaa
 loop = True
 while loop == True:
     print("Input query or 0 to quit: ")
