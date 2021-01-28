@@ -17,9 +17,25 @@
 
 
 
-## tehään tää kans
-# def read_file(file):
-# def close_file(file):
+# Pistin tän lukeen tekstin suoraan tiedostosta koska Moodlen suojaukset
+# (ainakin luulisin että niissä syy?) estää tekstin lukemisen urlista.
+# Deletöin myös erillisen close file -funktion koska se hoituu yhdellä komennolla.
+def read_file(file):
+
+    """ Function that opens the file, reads it, and writes the data in it
+    into a list where every wiki article is its own item in the list
+    """
+
+    openfile = open(file, "r")
+    readfile = openfile.read()
+    filelist = readfile.split("</article>")
+    openfile.close()
+    
+    return filelist     # returns the data that's been split into a list
+    
+wiki = "wiki100.txt"    # This needs to be added into the main function if/when we have one
+#test = read_file(wiki) # Delete hashtagged commands later, this was just
+#print(test[0])         # to test if the function works as it's supposed to
 
 
 def rewrite_token(t):
