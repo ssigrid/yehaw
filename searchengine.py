@@ -61,8 +61,9 @@ documents = ["This is a silly example",
              "Nothing to see here",
              "This is a great and long example"]
 
+wikidoc = read_file(wiki)
 cv = CountVectorizer(lowercase=True, binary=True)
-sparse_matrix = cv.fit_transform(documents)
+sparse_matrix = cv.fit_transform(wikidoc)
 
 dense_matrix = sparse_matrix.todense()
 td_matrix = dense_matrix.T
@@ -85,9 +86,7 @@ while loop == True:
         hits_matrix = eval(rewrite_query("NOT example OR great")) 
         hits_list = list(hits_matrix.nonzero()[1])
         for doc_idx in hits_list:
-            print("Matching doc:", documents[doc_idx])
+            print("Matching doc:", wikidoc[doc_idx])
         for i, doc_idx in enumerate(hits_list):
-            print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))
-
-## poistä tämä kommentti: tänne documentin vaihto tiedostoksi
+            print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx]))
 
