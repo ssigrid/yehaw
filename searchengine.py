@@ -19,7 +19,7 @@
 
 # Pistin tän lukeen tekstin suoraan tiedostosta koska Moodlen suojaukset
 # (ainakin luulisin että niissä syy?) estää tekstin lukemisen urlista.
-# Deletöin myös erillisen close file -funktion koska se hoituu yhdellä komennolla.
+# Deletoin myös erillisen close file -funktion koska se hoituu yhdellä komennolla.
 def read_file(file):
 
     """ Function that opens the file, reads it, and writes the data in it
@@ -55,6 +55,7 @@ def test_query(query):
     print()
 
 from sklearn.feature_extraction.text import CountVectorizer
+import re ## tää on nyt toistaseks tässä, jos vaikka tarvitsisin sitä johonkin :D t.sanna
 
 
 documents = ["This is a silly example",
@@ -64,8 +65,8 @@ documents = ["This is a silly example",
 
 wikidoc = read_file(wiki)
 cv = CountVectorizer(lowercase=True, binary=True)
-#sparse_matrix = cv.fit_transform(wikidoc) ## tää on oikee mut testailen
-sparse_matrix = cv.fit_transform(documents) ## TESTI: laita tää risuaidal piiloo ja ota ylemmästä pois
+sparse_matrix = cv.fit_transform(wikidoc) ## tää on oikee mut testailen
+#sparse_matrix = cv.fit_transform(documents) ## TESTI: laita tää risuaidal piiloo ja ota ylemmästä pois
                                             ## alla on viel kaks lisää näitä
 
 dense_matrix = sparse_matrix.todense()
@@ -95,9 +96,9 @@ while loop == True:
 
         ## musta tuntuu et nää tulostaa mitä sattuu eikä osumia
         for doc_idx in hits_list:
-            print("Matching doc:", documents[doc_idx]) # TESTI
-            #print("Matching doc:", wikidoc[doc_idx]) ##OIKEA
-        for i, doc_idx in enumerate(hits_list):
-            print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))#TESTI
-           # print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx])) ##OIKEA
+            #print("Matching doc:", documents[doc_idx]) # TESTI
+            print("Matching article:", wikidoc[doc_idx].split(">")[0]) ##OIKEA
+        #for i, doc_idx in enumerate(hits_list):
+            #print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))#TESTI
+            #print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx])) ##OIKEA
         print()
