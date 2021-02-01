@@ -8,6 +8,7 @@
 
 
 # kohta 2 ohjeista
+    #tulostus toimii, mutta jos paljon pitäisi saada vain n määrä
 # kohta 3 ohejista
 # kohta 4 ohjeista
 
@@ -63,7 +64,9 @@ documents = ["This is a silly example",
 
 wikidoc = read_file(wiki)
 cv = CountVectorizer(lowercase=True, binary=True)
-sparse_matrix = cv.fit_transform(wikidoc)
+#sparse_matrix = cv.fit_transform(wikidoc) ## tää on oikee mut testailen
+sparse_matrix = cv.fit_transform(documents) ## TESTI: laita tää risuaidal piiloo ja ota ylemmästä pois
+                                            ## alla on viel kaks lisää näitä
 
 dense_matrix = sparse_matrix.todense()
 td_matrix = dense_matrix.T
@@ -73,9 +76,9 @@ t2i = cv.vocabulary_
 
 loop = True
 while loop == True:
-    print("Input query or 0 to quit: ")
+    print("Input query or an empty string to quit: ")
     query = input()
-    if query == "0":
+    if query == "":
         print("Goodbye!")
         loop = False
     else:
@@ -83,10 +86,18 @@ while loop == True:
         ## siirsin nää alemmat tänne koska muuten printtasivat myös sulkiessa
         ## varmain main ohjelmaan tai omaansa sit lopussa
         sparse_td_matrix = sparse_matrix.T.tocsr()
-        hits_matrix = eval(rewrite_query("NOT example OR great")) 
-        hits_list = list(hits_matrix.nonzero()[1])
-        for doc_idx in hits_list:
-            print("Matching doc:", wikidoc[doc_idx])
-        for i, doc_idx in enumerate(hits_list):
-            print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx]))
 
+        #tässä query varmain pitäis korvata jollain koska nyt palauttaa alkuperäsen
+        hits_matrix = eval(rewrite_query(query))
+        # mallissa tässä oli jotai printtejä mitä en kopioinu   
+        hits_list = list(hits_matrix.nonzero()[1])
+        print(hits_list)
+
+        ## musta tuntuu et nää tulostaa mitä sattuu eikä osumia
+        for doc_idx in hits_list:
+            print("Matching doc:", documents[doc_idx]) # TESTI
+            #print("Matching doc:", wikidoc[doc_idx]) ##OIKEA
+        for i, doc_idx in enumerate(hits_list):
+            print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))#TESTI
+           # print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx])) ##OIKEA
+        print()
