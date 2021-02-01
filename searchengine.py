@@ -54,6 +54,11 @@ def test_query(query):
     print("Matching:", eval(rewrite_query(query))) # Eval runs the string as a Python command
     print()
 
+def print_article_name(article): ## tää ei vielä ihan toimi, printtaa vaan ekan sanan, joskus ei sitäkään
+    import re
+    article_name = re.sub(r'<article name="(\w+)((\s\w+)*)">', r'\1\2', article)
+    print(article_name.split()[0])
+
 from sklearn.feature_extraction.text import CountVectorizer
 import re ## tää on nyt toistaseks tässä, jos vaikka tarvitsisin sitä johonkin :D t.sanna
 
@@ -97,7 +102,10 @@ while loop == True:
         ## musta tuntuu et nää tulostaa mitä sattuu eikä osumia
         for doc_idx in hits_list:
             #print("Matching doc:", documents[doc_idx]) # TESTI
-            print("Matching article:", wikidoc[doc_idx].split(">")[0]) ##OIKEA
+            #print("Matching doc:", wikidoc[doc_idx]) ##OIKEA
+            print("Matching article:", end=" ")
+            article_name = print_article_name(wikidoc[doc_idx]) 
+            #pleasework = first_20_words(wikidoc[doc_idx])
         #for i, doc_idx in enumerate(hits_list):
             #print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))#TESTI
             #print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx])) ##OIKEA
