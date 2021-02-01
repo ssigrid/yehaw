@@ -16,7 +16,6 @@
 
 
 
-
 # Pistin tän lukeen tekstin suoraan tiedostosta koska Moodlen suojaukset
 # (ainakin luulisin että niissä syy?) estää tekstin lukemisen urlista.
 # Deletöin myös erillisen close file -funktion koska se hoituu yhdellä komennolla.
@@ -43,7 +42,7 @@ def rewrite_token(t):
      "or": "|", "OR": "|",
      "not": "1 -", "NOT": "1 -",
      "(": "(", ")": ")"}          # operator replacements
-    return d.get(t, 'td_matrix[t2i["{:s}"]]'.format(t)) # Can you figure out what happens here?
+    return d.get(t, 'td_matrix[t2i["{:s}"]]'.format(t))
 
 def rewrite_query(query): # rewrite every token in the query
     return " ".join(rewrite_token(t) for t in query.split())
@@ -76,16 +75,19 @@ while loop == True:
     print("Input query or 0 to quit: ")
     query = input()
     if query == "0":
+        print("Goodbye!")
         loop = False
     else:
         test_query(query)
-print("Quitting...")        
-print("Goodbye!")
+        ## siirsin nää alemmat tänne koska muuten printtasivat myös sulkiessa
+        ## varmain main ohjelmaan tai omaansa sit lopussa
+        sparse_td_matrix = sparse_matrix.T.tocsr()
+        hits_matrix = eval(rewrite_query("NOT example OR great")) 
+        hits_list = list(hits_matrix.nonzero()[1])
+        for doc_idx in hits_list:
+            print("Matching doc:", documents[doc_idx])
+        for i, doc_idx in enumerate(hits_list):
+            print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))
 
-sparse_td_matrix = sparse_matrix.T.tocsr()
-hits_matrix = eval(rewrite_query("NOT example OR great")) 
-hits_list = list(hits_matrix.nonzero()[1])
-for doc_idx in hits_list:
-    print("Matching doc:", documents[doc_idx])
-for i, doc_idx in enumerate(hits_list):
-    print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))
+## poistä tämä kommentti: tänne documentin vaihto tiedostoksi
+
