@@ -1,12 +1,7 @@
 #näitä tehtävänjakoja voi poistaa kun on tehty
 
-# miten avata tiedosto linkistä eli ohjeiden kohta 5
-    # tiedoston lukeminen
-    # tiedoston jako artikkeleihin
-    # artikkelien jako stringeiksi
-    # tiedoston sulkeminen
-
-# kohta 3 ohejista
+# kohta 3 ohejista:
+ #toimii pelkälleen muttei AND NOT OR jne kanssa. 
 # kohta 4 ohjeista
 
 
@@ -94,7 +89,7 @@ def main():
                 hits_matrix = eval(rewrite_query(query))
             except KeyError:
                 continue
-            # mallissa tässä oli jotai printtejä mitä en kopioinu   
+            
             hits_list = list(hits_matrix.nonzero()[1])
             print("Matches:", len(hits_list))
             print()
