@@ -14,7 +14,7 @@ def read_file(file):
     into a list where every wiki article is its own item in the list
     """
 
-    openfile = open(file, "r")
+    openfile = open(file, "r", encoding='utf-8')
     readfile = openfile.read()
     filelist = readfile.split("</article>")
     openfile.close()
