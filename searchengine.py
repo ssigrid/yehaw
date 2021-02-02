@@ -54,12 +54,12 @@ def test_query(query):
     print("Matching:", eval(rewrite_query(query))) # Eval runs the string as a Python command
     print()
 
-def print_article_name(article): ## tää ei vielä ihan toimi, printtaa vaan ekan sanan, joskus ei sitäkään
+def first_20_words(article): ## this now prints the first twenty fords of the article, including the name
     import re
-    article_name = re.sub(r'<article name="(([A-Za-z \(\)0-9])+)">', r'\1 –', article)
-    names = article_name.split()
+    first_20 = re.sub(r'<article name="(([A-Za-z \(\)0-9])+)">', r'\1 –', article)
+    word_list = first_20.split()
     for i in range(21):
-        print(names[i], end=" ")
+        print(word_list[i], end=" ")
     print("...")
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -100,16 +100,29 @@ while loop == True:
         hits_matrix = eval(rewrite_query(query))
         # mallissa tässä oli jotai printtejä mitä en kopioinu   
         hits_list = list(hits_matrix.nonzero()[1])
-        print(hits_list)
+        print("Matches:", len(hits_list))
+        print()
+
+        if len(hits_list) > 10:
+            print("Here are the first ten articles:")
+            print()
+            for doc_idx in hits_list[0:10]:
+                print("Matching article:", end=" ")
+                article_name = first_20_words(wikidoc[doc_idx])
+                print()
+        else:
+            for doc_idx in hits_list:
+                print("Matching article:", end=" ")
+                article_name = first_20_words(wikidoc[doc_idx])
+                print()
 
         ## musta tuntuu et nää tulostaa mitä sattuu eikä osumia
-        for doc_idx in hits_list:
+        #for doc_idx in hits_list:
             #print("Matching doc:", documents[doc_idx]) # TESTI
             #print("Matching doc:", wikidoc[doc_idx]) ##OIKEA
-            print("Matching article:", end=" ")
-            article_name = print_article_name(wikidoc[doc_idx])
-            print()
-            #pleasework = first_20_words(wikidoc[doc_idx])
+            #print("Matching article:", end=" ")
+            #article_name = first_20_words(wikidoc[doc_idx])
+            #print()
         #for i, doc_idx in enumerate(hits_list):
             #print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))#TESTI
             #print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx])) ##OIKEA
