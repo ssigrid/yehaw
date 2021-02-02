@@ -6,9 +6,6 @@
     # artikkelien jako stringeiksi
     # tiedoston sulkeminen
 
-
-# kohta 2 ohjeista
-    #tulostus toimii, mutta jos paljon pitäisi saada vain n määrä
 # kohta 3 ohejista
 # kohta 4 ohjeista
 
@@ -16,10 +13,6 @@
 # mainin toiminta? jos on aikaa
 
 
-
-# Pistin tän lukeen tekstin suoraan tiedostosta koska Moodlen suojaukset
-# (ainakin luulisin että niissä syy?) estää tekstin lukemisen urlista.
-# Deletoin myös erillisen close file -funktion koska se hoituu yhdellä komennolla.
 def read_file(file):
 
     """ Function that opens the file, reads it, and writes the data in it
@@ -63,7 +56,6 @@ def first_20_words(article): ## this now prints the first twenty fords of the ar
     print("...")
 
 from sklearn.feature_extraction.text import CountVectorizer
-import re ## tää on nyt toistaseks tässä, jos vaikka tarvitsisin sitä johonkin :D t.sanna
 
 
 documents = ["This is a silly example",
@@ -82,48 +74,35 @@ td_matrix = dense_matrix.T
 terms = cv.get_feature_names()
 t2i = cv.vocabulary_
 
-
-loop = True
-while loop == True:
-    print("Input query or an empty string to quit: ")
-    query = input()
-    if query == "":
-        print("Goodbye!")
-        loop = False
-    else:
-        test_query(query)
-        ## siirsin nää alemmat tänne koska muuten printtasivat myös sulkiessa
-        ## varmain main ohjelmaan tai omaansa sit lopussa
-        sparse_td_matrix = sparse_matrix.T.tocsr()
-
-        #tässä query varmain pitäis korvata jollain koska nyt palauttaa alkuperäsen
-        hits_matrix = eval(rewrite_query(query))
-        # mallissa tässä oli jotai printtejä mitä en kopioinu   
-        hits_list = list(hits_matrix.nonzero()[1])
-        print("Matches:", len(hits_list))
-        print()
-
-        if len(hits_list) > 10:
-            print("Here are the first ten articles:")
-            print()
-            for doc_idx in hits_list[0:10]:
-                print("Matching article:", end=" ")
-                article_name = first_20_words(wikidoc[doc_idx])
-                print()
+def main():
+    loop = True
+    while loop == True:
+        print("Input query or an empty string to quit: ")
+        query = input()
+        if query == "":
+            print("Goodbye!")
+            loop = False
         else:
-            for doc_idx in hits_list:
-                print("Matching article:", end=" ")
-                article_name = first_20_words(wikidoc[doc_idx])
-                print()
+            test_query(query)
+            sparse_td_matrix = sparse_matrix.T.tocsr()
+            hits_matrix = eval(rewrite_query(query))
+            # mallissa tässä oli jotai printtejä mitä en kopioinu   
+            hits_list = list(hits_matrix.nonzero()[1])
+            print("Matches:", len(hits_list))
+            print()
 
-        ## musta tuntuu et nää tulostaa mitä sattuu eikä osumia
-        #for doc_idx in hits_list:
-            #print("Matching doc:", documents[doc_idx]) # TESTI
-            #print("Matching doc:", wikidoc[doc_idx]) ##OIKEA
-            #print("Matching article:", end=" ")
-            #article_name = first_20_words(wikidoc[doc_idx])
-            #print()
-        #for i, doc_idx in enumerate(hits_list):
-            #print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))#TESTI
-            #print("Matching doc #{:d}: {:s}".format(i, wikidoc[doc_idx])) ##OIKEA
-        print()
+            if len(hits_list) > 10:
+                print("Here are the first ten articles:")
+                print()
+                for doc_idx in hits_list[0:10]:
+                    print("Matching article:", end=" ")
+                    article_name = first_20_words(wikidoc[doc_idx])
+                    print()
+            else:
+                for doc_idx in hits_list:
+                    print("Matching article:", end=" ")
+                    article_name = first_20_words(wikidoc[doc_idx])
+                    print()
+            print()
+
+main()
