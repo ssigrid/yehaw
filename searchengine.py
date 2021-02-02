@@ -43,7 +43,10 @@ def rewrite_query(query): # rewrite every token in the query
 def test_query(query):
     print("Query: '" + query + "'")
     print("Rewritten:", rewrite_query(query))
-    print("Matching:", eval(rewrite_query(query))) # Eval runs the string as a Python command
+    try:
+        print("Matching:", eval(rewrite_query(query))) # Eval runs the string as a Python command
+    except KeyError:
+        print("No matches for query.")
     print()
 
 def first_20_words(article): ## this now prints the first twenty fords of the article, including the name
@@ -87,7 +90,10 @@ def main():
         else:
             test_query(query)
             sparse_td_matrix = sparse_matrix.T.tocsr()
-            hits_matrix = eval(rewrite_query(query))
+            try:
+                hits_matrix = eval(rewrite_query(query))
+            except KeyError:
+                continue
             # mallissa tässä oli jotai printtejä mitä en kopioinu   
             hits_list = list(hits_matrix.nonzero()[1])
             print("Matches:", len(hits_list))
