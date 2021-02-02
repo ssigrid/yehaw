@@ -56,8 +56,11 @@ def test_query(query):
 
 def print_article_name(article): ## tää ei vielä ihan toimi, printtaa vaan ekan sanan, joskus ei sitäkään
     import re
-    article_name = re.sub(r'<article name="(\w+)((\s\w+)*)">', r'\1\2', article)
-    print(article_name.split()[0])
+    article_name = re.sub(r'<article name="(([A-Za-z \(\)0-9])+)">', r'\1 –', article)
+    names = article_name.split()
+    for i in range(21):
+        print(names[i], end=" ")
+    print("...")
 
 from sklearn.feature_extraction.text import CountVectorizer
 import re ## tää on nyt toistaseks tässä, jos vaikka tarvitsisin sitä johonkin :D t.sanna
@@ -104,7 +107,8 @@ while loop == True:
             #print("Matching doc:", documents[doc_idx]) # TESTI
             #print("Matching doc:", wikidoc[doc_idx]) ##OIKEA
             print("Matching article:", end=" ")
-            article_name = print_article_name(wikidoc[doc_idx]) 
+            article_name = print_article_name(wikidoc[doc_idx])
+            print()
             #pleasework = first_20_words(wikidoc[doc_idx])
         #for i, doc_idx in enumerate(hits_list):
             #print("Matching doc #{:d}: {:s}".format(i, documents[doc_idx]))#TESTI
