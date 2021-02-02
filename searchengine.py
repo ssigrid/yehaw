@@ -25,8 +25,7 @@ def read_file(file):
     openfile.close()
     
     return filelist     # returns the data that's been split into a list
-    
-wiki = "wiki100.txt"    # This needs to be added into the main function if/when we have one
+       # This needs to be added into the main function if/when we have one
 #test = read_file(wiki) # Delete hashtagged commands later, this was just
 #print(test[0])         # to test if the function works as it's supposed to
 
@@ -55,26 +54,29 @@ def first_20_words(article): ## this now prints the first twenty fords of the ar
         print(word_list[i], end=" ")
     print("...")
 
+wiki = "wiki100.txt"
 from sklearn.feature_extraction.text import CountVectorizer
 
 
 documents = ["This is a silly example",
-             "A better example",
-             "Nothing to see here",
-             "This is a great and long example"]
+            "A better example",
+            "Nothing to see here",
+            "This is a great and long example"]
 
 wikidoc = read_file(wiki)
 cv = CountVectorizer(lowercase=True, binary=True)
 sparse_matrix = cv.fit_transform(wikidoc) ## tää on oikee mut testailen
 #sparse_matrix = cv.fit_transform(documents) ## TESTI: laita tää risuaidal piiloo ja ota ylemmästä pois
-                                            ## alla on viel kaks lisää näitä
+                                                ## alla on viel kaks lisää näitä
 
 dense_matrix = sparse_matrix.todense()
 td_matrix = dense_matrix.T
 terms = cv.get_feature_names()
 t2i = cv.vocabulary_
 
+
 def main():
+    
     loop = True
     while loop == True:
         print("Input query or an empty string to quit: ")
