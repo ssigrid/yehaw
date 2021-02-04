@@ -1,10 +1,21 @@
+import nltk
+nltk.download('gutenberg')
+from nltk import sent_tokenize
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+
 documents = ["This is a silly silly silly example",
              "A better example",
              "Nothing to see here nor here nor here",
              "This is a great example and a long example too"]
 
-from sklearn.feature_extraction.text import CountVectorizer
-import numpy as np
+#stem.porter(documents)
+#for word in token_word:  ##Sigridin stemmailut
+    #tokenoitu_tiedosto.append(porter.stem(word)
+    #tokenoitu_tiedosto.append(” ”)
+    
 
 cv = CountVectorizer(lowercase=True, binary=True)
 binary_dense_matrix = cv.fit_transform(documents).T.todense()
@@ -53,8 +64,6 @@ print("Ranked (nhits, doc_idx) tuples:", ranked_nhits_and_doc_ids)
 print("\nMatched the following documents, ranked highest relevance first:")
 for nhits, i in ranked_nhits_and_doc_ids:
     print("Score of 'silly example' is", nhits, "in document:", documents[i])
-
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Parameters with which TfidfVectorizer does same thing as CountVectorizer
 tfv1 = TfidfVectorizer(lowercase=True, sublinear_tf=False, use_idf=False, norm=None)
@@ -156,7 +165,6 @@ ranked_scores_and_doc_ids = sorted(zip(np.array(hits[hits.nonzero()])[0], hits.n
 for score, i in ranked_scores_and_doc_ids:
     print("The score of 'silly example' is {:.4f} in document: {:s}".format(score, documents[i]))
 
-    import nltk
 
 booknames = nltk.corpus.gutenberg.fileids()
 
@@ -193,10 +201,3 @@ search_gutenberg("alice entertained harriet")
 search_gutenberg("whale hunter")
 search_gutenberg("oh thy lord cometh")
 search_gutenberg("which book should i read")
-
-
-
-
-
-
-
