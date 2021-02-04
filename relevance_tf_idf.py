@@ -1,6 +1,5 @@
 import nltk
 nltk.download('gutenberg')
-from nltk import sent_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -11,11 +10,7 @@ documents = ["This is a silly silly silly example",
              "Nothing to see here nor here nor here",
              "This is a great example and a long example too"]
 
-#stem.porter(documents)
-#for word in token_word:  ##Sigridin stemmailut
-    #tokenoitu_tiedosto.append(porter.stem(word)
-    #tokenoitu_tiedosto.append(” ”)
-    
+
 
 cv = CountVectorizer(lowercase=True, binary=True)
 binary_dense_matrix = cv.fit_transform(documents).T.todense()
@@ -196,6 +191,19 @@ def search_gutenberg(query_string):
         print("Doc #{:d} (score: {:.4f}): {:s}".format(i, score, booknames[doc_idx]))
     print()
 
+def stemmer(file):
+    from nltk.stem import PorterStemmer
+    from nltk.tokenize import sent_tokenize, word_tokenize
+    porter = PorterStemmer()
+    
+    token_words = word_tokenize(file)
+    token_words
+    stem_sentence = []
+    for word in token_words:
+        stem_sentence.append(porter.stem(word))
+        stem_sentence.append(" ")
+    return "".join(stem_sentence)
+    
 search_gutenberg("alice")
 search_gutenberg("alice entertained harriet")
 search_gutenberg("whale hunter")
