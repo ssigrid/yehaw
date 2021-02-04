@@ -17,13 +17,10 @@ def read_file(file):
     openfile = open(file, "r", encoding='utf-8')
     readfile = openfile.read()
     filelist = readfile.split("</article>")
+    filelist = filelist[:-1]                # Deletes an empty line from the end of the list
     openfile.close()
     
     return filelist     # returns the data that's been split into a list
-       # This needs to be added into the main function if/when we have one
-#test = read_file(wiki) # Delete hashtagged commands later, this was just
-#print(test[0])         # to test if the function works as it's supposed to
-
 
 def rewrite_token(t):
     d = {"and": "&", "AND": "&",
