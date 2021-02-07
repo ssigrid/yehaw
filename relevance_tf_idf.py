@@ -1,196 +1,3 @@
-import nltk
-nltk.download('gutenberg')
-from sklearn.feature_extraction.text import CountVectorizer
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-
-documents = ["This is a silly silly silly example",
-             "A better example",
-             "Nothing to see here nor here nor here",
-             "This is a great example and a long example too"]
-
-
-
-cv = CountVectorizer(lowercase=True, binary=True)
-binary_dense_matrix = cv.fit_transform(documents).T.todense()
-
-print("Term-document matrix:\n")
-print(binary_dense_matrix)
-
-cv = CountVectorizer(lowercase=True)
-dense_matrix = cv.fit_transform(documents).T.todense()
-
-print("Term-document matrix:\n")
-print(dense_matrix)
-
-for (row, term) in enumerate(cv.get_feature_names()):
-    print("Row", row, "is the vector for term:", term)
-
-t2i = cv.vocabulary_  # shorter notation: t2i = term-to-index
-print("Query: example")
-print(dense_matrix[t2i["example"]])
-
-hits_list = np.array(dense_matrix[t2i["example"]])[0]
-
-for i, nhits in enumerate(hits_list):
-    print("Example occurs", nhits, "time(s) in document:", documents[i])
-
-print("Query: better example")
-print("Hits of better:        ", dense_matrix[t2i["better"]])
-print("Hits of example:       ", dense_matrix[t2i["example"]])
-print("Hits of better example:", dense_matrix[t2i["better"]] + dense_matrix[t2i["example"]])
-
-print("Query: silly example")
-print("Hits of silly:        ", dense_matrix[t2i["silly"]])
-print("Hits of example:      ", dense_matrix[t2i["example"]])
-print("Hits of silly example:", dense_matrix[t2i["silly"]] + dense_matrix[t2i["example"]])
-
-# We need the np.array(...)[0] code here to convert the matrix to an ordinary list:
-hits_list = np.array(dense_matrix[t2i["silly"]] + dense_matrix[t2i["example"]])[0]
-print("Hits:", hits_list)
-
-nhits_and_doc_ids = [ (nhits, i) for i, nhits in enumerate(hits_list) if nhits > 0 ]
-print("List of tuples (nhits, doc_idx) where nhits > 0:", nhits_and_doc_ids)
-
-ranked_nhits_and_doc_ids = sorted(nhits_and_doc_ids, reverse=True)
-print("Ranked (nhits, doc_idx) tuples:", ranked_nhits_and_doc_ids)
-
-print("\nMatched the following documents, ranked highest relevance first:")
-for nhits, i in ranked_nhits_and_doc_ids:
-    print("Score of 'silly example' is", nhits, "in document:", documents[i])
-
-# Parameters with which TfidfVectorizer does same thing as CountVectorizer
-tfv1 = TfidfVectorizer(lowercase=True, sublinear_tf=False, use_idf=False, norm=None)
-tf_matrix1 = tfv1.fit_transform(documents).T.todense()
-
-print("TfidfVectorizer:")
-print(tf_matrix1)
-
-print("\nCountVectorizer:")
-print(dense_matrix)
-
-tfv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=False, norm=None)
-tf_matrix2 = tfv2.fit_transform(documents).T.todense()
-
-print("TfidfVectorizer (logarithmic term frequencies):")
-print(tf_matrix2)
-
-tfv3 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm=None)
-tf_matrix3 = tfv3.fit_transform(documents).T.todense()
-
-print("TfidfVectorizer (logarithmic term frequencies and inverse document frequencies):")
-print(tf_matrix3)
-
-tfv4 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2")
-tf_matrix4 = tfv4.fit_transform(documents).T.todense()
-
-print("TfidfVectorizer (logarithmic term frequencies and inverse document frequencies, normalized document vectors):")
-print(tf_matrix4)
-
-print("Query: silly example")
-print("Hits of silly:        ", tf_matrix4[t2i["silly"]])
-print("Hits of example:      ", tf_matrix4[t2i["example"]])
-print("Hits of silly example:", tf_matrix4[t2i["silly"]] + tf_matrix4[t2i["example"]])
-
-hits_list4 = np.array(tf_matrix4[t2i["silly"]] + tf_matrix4[t2i["example"]])[0]
-print("Hits:", hits_list4)
-
-hits_and_doc_ids = [ (hits, i) for i, hits in enumerate(hits_list4) if hits > 0 ]
-print("List of tuples (hits, doc_idx) where hits > 0:", hits_and_doc_ids)
-
-ranked_hits_and_doc_ids = sorted(hits_and_doc_ids, reverse=True)
-print("Ranked (hits, doc_idx) tuples:", ranked_hits_and_doc_ids)
-
-print("\nMatched the following documents, ranked highest relevance first:")
-for hits, i in ranked_hits_and_doc_ids:
-    print("Score of 'silly example' is {:.4f} in document: {:s}".format(hits, documents[i]))
-
-query_vec4 = tfv4.transform(["silly example"]).todense()
-print(query_vec4)
-
-print(query_vec4.T)
-
-print("Tf-idf weight of 'example' on row", t2i["example"], "is:", query_vec4.T[t2i["example"]])
-print("Tf-idf weight of 'silly' on row", t2i["silly"], "is: ", query_vec4.T[t2i["silly"]])
-
-for i in range(0, 4):
-    
-    # Go through each column (document vector) in the index 
-    doc_vector = tf_matrix4[:, i]
-    
-    # Compute the dot product between the query vector and the document vector
-    # (Some extra stuff here to extract the number from the matrix data structure)
-    score = np.array(np.dot(query_vec4, doc_vector))[0][0]
-    
-    print("The score of 'silly example' is {:.4f} in document: {:s}".format(score, documents[i]))
-
-scores = np.dot(query_vec4, tf_matrix4)
-print("The documents have the following cosine similarities to the query:", scores)
-
-ranked_scores_and_doc_ids = \
-    sorted([ (score, i) for i, score in enumerate(np.array(scores)[0]) if score > 0], reverse=True)
-
-for score, i in ranked_scores_and_doc_ids:
-    print("The score of 'silly example' is {:.4f} in document: {:s}".format(score, documents[i]))
-
-tfv5 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2")
-sparse_matrix = tfv5.fit_transform(documents).T.tocsr() # CSR: compressed sparse row format => order by terms
-
-print("Sparse term-document matrix with tf-idf weights:")
-print(sparse_matrix)
-
-# The query vector is a horizontal vector, so in order to sort by terms, we need to use CSC
-query_vec5 = tfv5.transform(["silly example"]).tocsc() # CSC: compressed sparse column format
-
-print("Sparse one-row query matrix (horizontal vector):")
-print(query_vec5)
-
-hits = np.dot(query_vec5, sparse_matrix)
-
-print("Matching documents and their scores:")
-print(hits)
-
-print("The matching documents are:", hits.nonzero()[1])
-
-print("The scores of the documents are:", np.array(hits[hits.nonzero()])[0])
-
-ranked_scores_and_doc_ids = sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
-
-for score, i in ranked_scores_and_doc_ids:
-    print("The score of 'silly example' is {:.4f} in document: {:s}".format(score, documents[i]))
-
-
-booknames = nltk.corpus.gutenberg.fileids()
-
-bookdata = list(nltk.corpus.gutenberg.raw(name) for name in booknames)
-
-print("There are", len(bookdata), "books in the collection:", booknames)
-
-gv = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2")
-g_matrix = gv.fit_transform(bookdata).T.tocsr()
-
-print("Number of terms in vocabulary:", len(gv.get_feature_names()))
-
-def search_gutenberg(query_string):
-
-    # Vectorize query string
-    query_vec = gv.transform([ query_string ]).tocsc()
-
-    # Cosine similarity
-    hits = np.dot(query_vec, g_matrix)
-
-    # Rank hits
-    ranked_scores_and_doc_ids = \
-        sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]),
-               reverse=True)
-    
-    # Output result
-    print("Your query '{:s}' matches the following documents:".format(query_string))
-    for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
-        print("Doc #{:d} (score: {:.4f}): {:s}".format(i, score, booknames[doc_idx]))
-    print()
-
 def stemmer(file):
     from nltk.stem import PorterStemmer
     from nltk.tokenize import sent_tokenize, word_tokenize
@@ -203,9 +10,180 @@ def stemmer(file):
         stem_sentence.append(porter.stem(word))
         stem_sentence.append(" ")
     return "".join(stem_sentence)
+
+def read_file(file):
+
+    """ Function that opens the file, reads it, and writes the data in it
+    into a list where every wiki article is its own item in the list
+    """
+
+    openfile = open(file, "r", encoding='utf-8')
+    print("Writing the file into a list...")
+    readfile = openfile.read()
+    filelist = readfile.split("</article>")
+    filelist = filelist[:-1]                # Deletes an empty line from the end of the list
+    openfile.close()
+    print("Success!")
+    print()
     
-search_gutenberg("alice")
-search_gutenberg("alice entertained harriet")
-search_gutenberg("whale hunter")
-search_gutenberg("oh thy lord cometh")
-search_gutenberg("which book should i read")
+    return filelist     # returns the data that's been split into a list
+    
+def stem_file(file):
+
+    """ Function that reads every line of the file, puts it through a stemmer,
+    and writes the stemmed text into a new list
+    """
+
+    stemlist = []
+    print("Analyzing words...")
+    for line in file:
+        line = stemmer(line)
+        stemlist.append(line)
+    print("Success!")
+    print()
+    
+    return stemlist     # returns the list with the stemmed sentences
+
+def get_name(file):
+    
+    """ Function that searches the articles for the article tag,
+    substitutes the tag with the actual title of the article and a newline character,
+    then splits the article into a list based on newline characters,
+    and finally writes the first line of the split article into a new list,
+    creating a list of titles corresponding to the articles
+    """
+    
+    import re
+
+    namelist = []
+    
+    print("Extracting article titles...")
+    for i in wikidoc:
+        find_tag = re.sub(r'\n?<article name="(([A-Za-z \(\)0-9])+)">', r'\1\n', i)
+        find_title = re.split(r'\n', find_tag)
+        namelist.append(find_title[0])
+    print("Success!")
+    print()
+    
+    return namelist     # returns the list of article titles
+
+def search_file(query_string):
+
+    """ Function that searches the query from the (non-stemmed) articles
+    by using the cosine similarity of the query and the articles,
+    then sorts the hits based on relevance, and prints the titles of
+    the 15 most relevant articles
+    """
+    
+    # Vectorize query string
+    query_vec = gv1.transform([ query_string ]).tocsc()
+
+    # Cosine similarity
+    hits = np.dot(query_vec, g_matrix)
+
+    # Rank hits
+    ranked_scores_and_doc_ids = \
+        sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
+    
+    # Output result
+    if (len(ranked_scores_and_doc_ids)) <= 15:
+        print("Your query '{:s}' matches the following documents:".format(query_string))
+        for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
+            print("Doc #{:d} (score: {:.4f}): {:s}".format(i, score, wikinames[doc_idx]))
+    else:
+        print("Your query '{:s}' best matches the following 15 documents:".format(query_string))
+        for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
+            if 0 <= i <= 14:
+                print("Doc #{:d} (score: {:.4f}): {:s}".format(i, score, wikinames[doc_idx]))
+    print()
+
+def search_file_stem(query_string):
+
+    """ Function that runs the query through the stemmer, searches that query
+    from the stemmed articles by using the cosine similarity of the query and the articles,
+    then sorts the hits based on relevance, and prints the titles of
+    the 15 most relevant articles
+    """
+    
+    query_stem = stemmer(query_string)
+    
+    # Vectorize query string
+    query_vec = gv2.transform([ query_stem ]).tocsc()
+
+    # Cosine similarity
+    hits = np.dot(query_vec, g_matrix_stem)
+
+    # Rank hits
+    ranked_scores_and_doc_ids = \
+        sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
+    
+    # Output result
+    if (len(ranked_scores_and_doc_ids)) <= 15:
+        print("Your query '{:s}' matches the following documents:".format(query_string))
+        for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
+            print("Doc #{:d} (score: {:.4f}): {:s}".format(i, score, wikinames[doc_idx]))
+    else:
+        print("Your query '{:s}' best matches the following 15 documents:".format(query_string))
+        for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
+            if 0 <= i <= 14:
+                print("Doc #{:d} (score: {:.4f}): {:s}".format(i, score, wikinames[doc_idx]))
+    print()
+
+wiki = "wiki100.txt"
+wikidoc = read_file(wiki)
+wikinames = get_name(wikidoc)
+wikistem = stem_file(wikidoc)
+
+#print(wikidoc[-1])
+#print(wikinames[-1])
+#print(wikistem[-1])
+
+import nltk
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+#print("There are", len(wikidoc), "books in the collection:", wikinames)
+#print("Number of terms in vocabulary:", len(gv.get_feature_names()))
+
+gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
+g_matrix = gv1.fit_transform(wikidoc).T.tocsr()
+gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
+g_matrix_stem = gv2.fit_transform(wikistem).T.tocsr()
+
+def main():
+    
+    """ Main program that asks the user for a query and if they want to
+    search based on the stems of the words,
+    then directs the query to a function based on the user's answer
+    """
+    
+    loop = True
+    while loop == True:
+        print("Input query or an empty string to quit: ")
+        query = input()
+        if query == "":
+            print("Goodbye!")
+            loop = False
+        else:
+            print()
+            print("Do you want to search stems? Press 'y' for yes, 'n' for no, or anything else to quit: ")
+            stem = input()
+            if stem == "y":
+                print()
+                try:
+                    search_file_stem(query)
+                except IndexError:
+                    print("IndexError: Your query didn't match any documents.")
+            elif stem == "n":
+                print()
+                try:
+                    search_file(query)
+                except IndexError:
+                    print("IndexError: Your query didn't match any documents.")
+            else:
+                print()
+                print("Goodbye!")
+                loop = False
+
+main()
