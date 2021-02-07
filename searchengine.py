@@ -69,7 +69,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 wiki = "wiki100.txt"
 wikidoc = read_file(wiki)
 
-cv = CountVectorizer(lowercase=True, binary=True)
+cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
 sparse_matrix = cv.fit_transform(wikidoc) ## tää on oikee mut testailen
 dense_matrix = sparse_matrix.todense()
 td_matrix = dense_matrix.T
