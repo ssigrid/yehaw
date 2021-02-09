@@ -175,15 +175,14 @@ def main():
                     search_file_stem(query)
                 except IndexError:
                     print("IndexError: Your query didn't match any documents.")
-            else: ## tänne kai stemmi
+               # if re.search(r'\*', terms):
+                
+            else: ## normi stemmi
                 print()
                 try:
                     search_file(query)
                 except IndexError:
                     print("IndexError: Your query didn't match any documents.")
-            else:
-                print()
-                print("Goodbye!")
-                loop = False
+            
 
 main()
