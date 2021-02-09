@@ -167,15 +167,15 @@ def main():
             loop = False
         else:
             print()
-            print("Do you want to search stems? Press 'y' for yes, 'n' for no, or anything else to quit: ")
-            stem = input()
-            if stem == "y":
+            print("Do you want to search stems? Press 'y' for yes, 'n' for no, or anything else to quit: ")## muokkaa tää
+            terms = input()
+            if re.search(r'^".*"$', terms): ## tänne exact matching
                 print()
                 try:
                     search_file_stem(query)
                 except IndexError:
                     print("IndexError: Your query didn't match any documents.")
-            elif stem == "n":
+            else: ## tänne kai stemmi
                 print()
                 try:
                     search_file(query)
