@@ -169,7 +169,7 @@ def main():
             print()
             print("Do you want to search stems? Press 'y' for yes, 'n' for no, or anything else to quit: ")## muokkaa tää
             terms = input()
-            if re.search(r'^".*"$', terms): ## tänne exact matching
+            if re.search(r'^"\w*"$'): ## tänne normi jos yks sana exact 
                 print()
                 try:
                     search_file_stem(query)
