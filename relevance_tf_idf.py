@@ -53,8 +53,6 @@ def get_name(file):
     creating a list of titles corresponding to the articles
     """
     
-    import re
-
     namelist = []
     
     print("Extracting article titles...")
@@ -129,6 +127,12 @@ def search_file_stem(query_string):
                 print("Doc #{:d} (score: {:.4f}): {:s}".format(i, score, wikinames[doc_idx]))
     print()
 
+import nltk
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+import re
+
 wiki = "wiki100.txt"
 wikidoc = read_file(wiki)
 wikinames = get_name(wikidoc)
@@ -138,18 +142,13 @@ wikistem = stem_file(wikidoc)
 #print(wikinames[-1])
 #print(wikistem[-1])
 
-import nltk
-from sklearn.feature_extraction.text import CountVectorizer
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-#print("There are", len(wikidoc), "books in the collection:", wikinames)
-#print("Number of terms in vocabulary:", len(gv.get_feature_names()))
-
 gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
 g_matrix = gv1.fit_transform(wikidoc).T.tocsr()
 gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
 g_matrix_stem = gv2.fit_transform(wikistem).T.tocsr()
+
+#print("There are", len(wikidoc), "books in the collection:", wikinames)
+#print("Number of terms in vocabulary:", len(gv.get_feature_names()))
 
 def main():
     
@@ -166,21 +165,18 @@ def main():
             print("Goodbye!")
             loop = False
         else:
-            print()
-            print("Do you want to search stems? Press 'y' for yes, 'n' for no, or anything else to quit: ")## muokkaa tää
-            terms = input()
-            if re.search(r'^"\w*"$'): ## tänne normi jos yks sana exact 
+            if re.search(r'^".*"$', query): ## tänne normi jos yks sana exact 
                 print()
                 try:
-                    search_file_stem(query)
+                    search_file(query)
                 except IndexError:
                     print("IndexError: Your query didn't match any documents.")
-               # if re.search(r'\*', terms):
+               # if re.search(r'\*', query):
                 
             else: ## normi stemmi
                 print()
                 try:
-                    search_file(query)
+                    search_file_stem(query)
                 except IndexError:
                     print("IndexError: Your query didn't match any documents.")
             
