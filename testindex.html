@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>KIK-LG211</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f1f1f1;
+  background-image: url(5011.png);
+  background-repeat: repeat;
+  background-size: 125px;
+}
+
+/* Header style */
+header {
+  background-color: #e9f1e2;
+  background-image: url(cactus-2191647_1920.jpg);
+  background-repeat: repeat;
+  background-size: 50%;
+  padding: 15px;
+  margin: 5px;
+  border-width: 5px;
+  border-style: double;
+  border-color: #006a4e;
+  border-radius: 100px;
+}
+
+/* Headline in header style */
+header h2 {
+  background-color: #f6faf3;
+  width: 40%;
+  margin-left: 30%;
+  padding: 15px;
+  border-radius: 100px;
+  text-align: center;
+  font-size: 35px;
+  color: #006a4e;
+}
+
+/* Section style */
+section {
+  display: flex;
+}
+
+/* Makes it so that stuff that comes after the floats (nav and articles) doesn't go under the floats */
+section::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Navigation style */
+nav {
+  float: left;
+  width: 20%;
+  background: #e9f1e2;
+  background-image: url(cactus-2191647_1920.jpg);
+  background-repeat: repeat;
+  background-size: 50%;
+  padding-left: 5px;
+  margin: 5px 0px 5px 2%;
+  border-width: 5px;
+  border-style: double;
+  border-color: #006a4e;
+  border-radius: 20px;
+}
+
+/* Article id style */
+#article {
+  float: left;
+  width: 26%;
+  padding: 0px 15px 0px 15px;
+  margin: 5px 0px 5px 2%;
+  background-color: #e9f1e2;
+  color: #006a4e;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #cfe0bf;
+  border-radius: 20px;
+}
+
+/* Videobox id style */
+#videobox {
+  float: left;
+  width: 46%;
+  padding: 10px 15px 10px 15px;
+  margin: 5px 2% 5px 2%;
+  background-color: #e9f1e2;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #cfe0bf;
+  border-radius: 20px;
+}
+
+/* List inside nav style */
+nav ul {
+  list-style: square inside url(pensive_cowboy_icon.png);
+  padding: 0px;
+}
+
+/* Item inside list style */
+ul li {
+	padding: 10px;
+	margin: 10px;
+	opacity: 1;
+	transition: all 500ms ease;
+}
+
+/* Mouse over item inside list (not at use atm) */
+ul li:hover {
+	opacity: 0.6;
+}
+
+/* List link text style */
+li a {
+  background-color: #f6faf3;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+/* General link text style */
+a {
+  text-decoration: none;
+  transition: all 500ms ease;
+}
+
+/* Unvisited link */
+a:link {
+  color: #00a86b;
+}
+
+/* Visited link */
+a:visited {
+  color: #01796f;
+}
+
+/* Hover over link */
+a:hover {
+  color: #3eb489;
+}
+
+/* Selected link */
+a:active {
+  color: #3eb489;
+}
+
+/* Span style */
+span {
+  color: #246bce;
+  font-weight: bold;
+}
+
+/* Video style */
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+  float: left;
+}
+
+/* Footer style */
+footer {
+  background-color: background-color: #f6faf3;
+  background-image: url(cactus-2191647_1920.jpg);
+  background-repeat: repeat;
+  background-size: 5%;
+  background-position: left;
+  padding: 10px;
+  margin: 5px;
+  border-width: 4px;
+  border-style: double;
+  border-color: #006a4e;
+  border-radius: 100px;
+}
+
+/* Paragraph in footer style */
+footer p {
+  background-color: #f6faf3;
+  width: 40%;
+  margin-left: 30%;
+  padding: 10px;
+  border-radius: 100px;
+  text-align: center;
+  color: black;
+  font-size: 12px;
+}
+
+/* Cowboy class style */
+.cowboy {
+  max-width: 45px;
+  margin: 0px 20px 0px 20px;
+  -webkit-transition: -webkit-transform .8s ease-in-out;
+          transition:         transform .8s ease-in-out;
+}
+
+/* Hover over cowboy class style */
+.cowboy:hover {
+  -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+}
+
+/* Cowboy id style */
+#cowboy {
+  max-width: 30px;
+  margin: 0px 10px 0px 0px;
+  float: left;
+}
+
+/* Makes the article cowboy rotate infinitely when you hover mouse over it */
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+/* Hover over cowboy id style */
+#cowboy:hover {
+  -webkit-animation:spin 1s linear infinite;
+  -moz-animation:spin 1s linear infinite;
+  animation:spin 1s linear infinite;
+}
+
+/* Responsive layout - helps readability on small screens */
+@media (max-width: 600px) {
+  nav, article {
+    width: 100%;
+    height: auto;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2><img src="https://www.clipartkey.com/mpngs/b/128-1285644_pensive-clipart.png" alt="pensive cowboy emoji" class="cowboy">ATTENTION<img src="https://www.clipartkey.com/mpngs/b/128-1285644_pensive-clipart.png" alt="pensive cowboy emoji" class="cowboy"></h2>
+</header>
+
+<section>
+	<nav>
+		<ul>
+			<li><a href="https://github.com/ssigrid/yehaw">Our github</a></li>
+			<li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Something Important</a></li>
+			<li><a href="https://www.youtube.com/watch?v=R8R-ge3bzsY&list=LL&index=14">No but for real</a></li>
+		</ul>
+	</nav>
+	
+	<div id="article">
+		<p><img src="pensive_cowboy.png" alt="pensive cowboy emoji" id="cowboy"> The cowboys on this page are very
+		<span>sad</span> as you can see. It would mean a lot to them if you watched the video embedded on this page.
+		Who knows, maybe it can brighten your day as well.</p>
+		<p>Thank you for your help.</p>
+		<p>Pardner.</p>
+	</div>
+
+	<div id="videobox">
+		<iframe src="https://www.youtube.com/embed/rvrZJ5C_Nwg"></iframe>
+	</div>
+
+</section>
+
+<footer>
+	<p>Cactus background by <a href="https://pixabay.com/users/wiliantosta-4072219/">Wilian Tosta</a> from <a href="https://pixabay.com/">Pixabay</a><br>
+	Background pattern from <a href="https://background-tiles.com/">Background Tiles</a></p>
+</footer>
+
+</body>
+</html>
