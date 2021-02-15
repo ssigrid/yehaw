@@ -17,8 +17,11 @@ Activate the environment:
 On Windows:
 >hawyeenv/Scripts/activate
 
-Install Flask:
+Install Flask, nltk, sklearn, and numpy:
 >pip install Flask
+>pip install nltk
+>pip install  sklearn
+>pip install numpy
 
 
 ##### Run this Flask application
