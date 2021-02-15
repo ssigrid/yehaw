@@ -2,8 +2,8 @@
 This is the NLP project for the course KIK-LG211 by Sanna, Viima, and Sigrid. 
 
 
-##### Using flask
-######Install Flask in a virtual environment to contain it.
+#### Using flask
+#####Install Flask in a virtual environment to contain it.
 
 Create a virtual environment hawyeenv:
 > python3 -m venv hawyeenv
@@ -21,7 +21,7 @@ Install Flask:
 >pip install Flask
 
 
-######Run this Flask application
+#####Run this Flask application
 
 Make sure you are in yehaw directory.
 
