@@ -74,11 +74,27 @@ def get_name(file):
     print()
 
     return namelist     # returns the list of article titles
+    
+def first_25_words(article):
+    first_25 = re.sub(r'<article name="(([A-Za-z \(\)0-9])+)">', r'', article)
+    word_list = first_25.split()
+    twentyfivewords = []
+    for i in range(26):
+        twentyfivewords.append(word_list[i])
+    twentyfivewords = ' '.join(twentyfivewords)
+    twentyfivewords = twentyfivewords + "..."
+    
+    return twentyfivewords      # return the first 25 words of the article as string
 
 wiki = "wiki100.txt"
 wikidoc = read_file(wiki)
 wikinames = get_name(wikidoc)
 wikistem = stem_file(wikidoc)
+wikidictionary = []
+
+for i in range(100):    # initializing the dictionary entries might be redundant, check later
+    dictionarynew = {'name': wikinames[i], 'text': first_25_words(wikidoc[i])}
+    wikidictionary.append(dictionarynew)
 
 #Function search() is associated with the address base URL + "/search"
 @app.route('/search')
