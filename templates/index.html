@@ -1,10 +1,12 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Search engine</title>
-    </head>
+<head>
+<meta charset="utf-8">
+<title>Search engine</title>
+</head>
+
     <body>
-        <h1>Find documents</h1>
+        <h1>Find documents <img src="static/pensive_cowboy.png" style="width: 50px; height 100%"></h1>
         <!--Reload the page with variable "query" in the URL-->
         <form>
             <input type="text" name="query" autofocus>
@@ -14,12 +16,12 @@
             <!--Go through each item in the "matches" variable sent from
                 search() function in the Flask app-->
             {% for item in matches %}
-            <tr>
+	    <tr>
                 <!--Display the name of the item based on the "name" key-->
                 <td>{{ item[] }}</td>
                 <!--Display the image of the item based on the "source" key-->
                 <td><img src="static/pensive_cowboy.png" style="width: 400px; height 100%"></td>
-            </tr>
+	    </tr>
             <!--End for loop-->
             {% endfor %}
         </table>
