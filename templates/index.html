@@ -3,25 +3,50 @@
 <head>
 <meta charset="utf-8">
 <title>Search engine</title>
+<style>
+    header {
+        font-family=;
+    }
+</style>
 </head>
 
     <body>
-        <h1>Find documents <img src="static/pensive_cowboy.png" style="width: 50px; height 100%"></h1>
+        <h1>Find documents <img src="static/pensive_cowboy.png" style="width: 50px; height: 100%"></h1>
         <!--Reload the page with variable "query" in the URL-->
         <form>
-            <input type="text" name="query" autofocus>
-            <input type="submit" value="Search">
+            <input type="text" name="b_query" autofocus>
+            <input type="submit" value="Boolean Search" alt="Boolean Search">
+        </form>
+        <form>
+            <input type="text" name="r_query" autofocus>
+            <input type="submit" value="Relevance Search" alt="Relevance Search">
         </form>
         <table>
             <!--Go through each item in the "matches" variable sent from
                 search() function in the Flask app-->
             {% for item in matches %}
-	    <tr>
-                <!--Display the name of the item based on the "name" key-->
-                <td>{{ item[] }}</td>
-                <!--Display the image of the item based on the "source" key-->
-                <td><img src="static/pensive_cowboy.png" style="width: 400px; height 100%"></td>
-	    </tr>
+                {% if item.name is defined %}
+                    {% if item.score is defined %}
+                    <tr>
+                        <td> {{ item["rank"] }}</td>
+                        <td> {{ item["name"] }}</td>
+                        <td> {{ item["score"] }}</td>
+                        <td> {{ item["text"] }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if item.score is undefined %}
+                    <tr>
+                        <td> {{ item["rank"] }}</td>
+                        <td> {{ item["name"] }}</td>
+                        <td> {{ item["text"] }}</td>
+                    </tr>
+                    {% endif %}
+                {% endif %}
+                {% if item.name is undefined %}
+                    <tr>
+                        <td> {{ item }}</td>
+                    </tr>
+                {% endif %}
             <!--End for loop-->
             {% endfor %}
         </table>
