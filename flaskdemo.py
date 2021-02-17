@@ -30,13 +30,11 @@ def read_file(file):
     """
 
     openfile = open(file, "r", encoding='utf-8')
-    print("Writing the file into a list...")
     readfile = openfile.read()
     filelist = readfile.split("</article>")
     filelist = filelist[:-1]                # Deletes an empty line from the end of the list                   
     openfile.close()
-    print("Success!")
-    print()
+    
 
     return filelist     # returns the data that's been split into a list
 
@@ -47,12 +45,9 @@ def stem_file(file):
     """
 
     stemlist = []
-    print("Analyzing words...")
     for line in file:
         line = stemmer(line)
         stemlist.append(line)
-    print("Success!")
-    print()
 
     return stemlist     # returns the list with the stemmed sentences
 
@@ -67,13 +62,11 @@ def get_name(file):
 
     namelist = []
 
-    print("Extracting article titles...")
     for i in wikidoc:
         find_tag = re.sub(r'\n?<article name="(([A-Za-z \(\)0-9])+)">', r'\1\n', i)
         find_title = re.split(r'\n', find_tag)
         namelist.append(find_title[0])
-    print("Success!")
-    print()
+
 
     return namelist     # returns the list of article titles
     
@@ -202,9 +195,6 @@ def test_query(query):
     and then makes that list into a string again
     """
     
-    #print("Query: '" + query + "'")
-    #print("Rewritten:", rewrite_query(query))
-    
     rewritten = rewrite_query(query)
     r_list = []
     for t in rewritten.split():
@@ -216,7 +206,6 @@ def test_query(query):
         except SyntaxError:
             r_list.append(t)                                # Rewritten and/or/not stay the same
     r_join = " ".join(r_list)
-    # print("Matching:", eval(r_join))
     
     return r_join   # returns the rewritten list
     
@@ -255,7 +244,7 @@ for i in range(100):    # initializing the dictionary entries might be redundant
 # VECTORS AND MATRICES INITIALIZED:
 
 cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
-sparse_matrix = cv.fit_transform(wikidoc) ## tää on oikee mut testailen
+sparse_matrix = cv.fit_transform(wikidoc)
 dense_matrix = sparse_matrix.todense()
 td_matrix = dense_matrix.T
 terms = cv.get_feature_names()
@@ -266,7 +255,7 @@ g_matrix = gv1.fit_transform(wikidoc).T.tocsr()
 gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
 g_matrix_stem = gv2.fit_transform(wikistem).T.tocsr()
 
-# SEARCH FUNTION WORKING AS THE 'MAIN' FUNCTION:
+# SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
 #Function search() is associated with the address base URL + "/search"
 @app.route('/search')
