@@ -108,14 +108,16 @@ def search_file(query):
         resultsitem = {'name': "Article Title", 'text': "Your query {:s} matched one article. Here are the first 25 words of it:".format(query), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
-            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': score, 'rank': i+1}
+            roundedscore = "{:.4f}".format(score)   # we're only printing four decimals now
+            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': roundedscore, 'rank': i+1}
             results.append(resultsitem)
     elif (len(ranked_scores_and_doc_ids)) <= 10:
         #results.append("Your query {:s} matches the following {:d} documents:".format(query, len(ranked_scores_and_doc_ids)))
         resultsitem = {'name': "Article Title", 'text': "Your query {:s} matched {:d} articles. Here are the first 25 words of them in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
-            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': score, 'rank': i+1}
+            roundedscore = "{:.4f}".format(score)
+            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': roundedscore, 'rank': i+1}
             results.append(resultsitem)
     else:
         #results.append("Your query {:s} matches {:d} documents, out of which it matches the following 10 documents the best:".format(query, len(ranked_scores_and_doc_ids)))
@@ -123,7 +125,8 @@ def search_file(query):
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             if 0 <= i <= 9:
-                resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': score, 'rank': i+1}
+                roundedscore = "{:.4f}".format(score)
+                resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': roundedscore, 'rank': i+1}
                 results.append(resultsitem)
                     
     return results      # return dictionary of results
@@ -157,14 +160,16 @@ def search_file_stem(query):
         resultsitem = {'name': "Article Title", 'text': "Your query '{:s}' matched one article. Here are the first 25 words of it:".format(query), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
-            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': score, 'rank': i+1}
+            roundedscore = "{:.4f}".format(score)
+            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': roundedscore, 'rank': i+1}
             results.append(resultsitem)
     elif (len(ranked_scores_and_doc_ids)) <= 10:
         #results.append("Your query '{:s}' matches the following {:d} documents:".format(query, len(ranked_scores_and_doc_ids)))
         resultsitem = {'name': "Article Title", 'text': "Your query '{:s}' matched {:d} articles. Here are the first 25 words of them in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
-            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': score, 'rank': i+1}
+            roundedscore = "{:.4f}".format(score)
+            resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': roundedscore, 'rank': i+1}
             results.append(resultsitem)
     else:
         #results.append("Your query '{:s}' matches {:d} documents, out of which it matches the following 10 documents the best:".format(query, len(ranked_scores_and_doc_ids)))
@@ -172,7 +177,8 @@ def search_file_stem(query):
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             if 0 <= i <= 9:
-                resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': score, 'rank': i+1}
+                roundedscore = "{:.4f}".format(score)
+                resultsitem = {'name': wikinames[doc_idx], 'text': first_25_words(wikidoc[doc_idx]), 'score': roundedscore, 'rank': i+1}
                 results.append(resultsitem)
                 
     return results      # return dictionary of results
