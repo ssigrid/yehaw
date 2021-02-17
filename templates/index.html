@@ -81,26 +81,31 @@
     input[type=text] {
         border-color:rgb(93, 8, 104);
         padding: 5px;
+		border-radius: 5px;
     }
 
     input[type=submit] {
-        border-color:rgb(45, 17, 207);
+        border-color:rgb(93, 8, 104);
         padding: 5px;
+		border-radius: 5px;
     }
 
     input[type=text]:focus {
         border-color:rgb(35, 2, 39);
         outline: none;
+		border-radius: 5px;
     }
 
     input[type=submit]:focus {
-        border-color:rgb(24, 8, 116);
+        border-color:rgb(35, 2, 39);
         outline: none;
+		border-radius: 5px;
     }
 
     input[type=text], select, textarea{
         border-color:rgb(172, 106, 8);
         outline: none;
+		border-radius: 5px;
     }
 
     a {
@@ -109,19 +114,19 @@
     }
 
     a:link {
-        color:rgb(51, 38, 28)
+        color: rgb(151, 38, 28);
     }
 
     a:visited {
-        color:rgb(51, 38, 28)
+        color: rgb(151, 38, 28);
     }
 
     a:hover {
-        color:rgb(51, 38, 28)
+        color: rgb(204, 67, 67);
     }
 
     a:active {
-        color:rgb(51, 38, 28)
+        color: rgb(151, 38, 28);
     }
 
 
@@ -140,7 +145,7 @@
 
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
-  position: relative;
+  position: absolute;
   display: inline-block;
   margin-right: 2%;
   margin-top: 2%;
@@ -171,7 +176,7 @@
 }
 
 /* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: rgb(247, 122, 122)}
+.dropdown-content a:hover {background-color: rgb(204, 67, 67)}
 
 /* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {
@@ -182,14 +187,26 @@
 .dropdown:hover .dropbtn {
   background-color: rgb(161, 48, 48);
 }
+
+/* Makes the article cowboy rotate infinitely when you hover mouse over it */
+	@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+	@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+	@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+/* Hover over cowboy id style */
+	#rotate:hover {
+		-webkit-animation:spin 1s linear infinite;
+		-moz-animation:spin 1s linear infinite;
+		animation:spin 1s linear infinite;
+	}
 </style>
 </head>
 
     <body>
         <div>
-        <header><img src="static/pensive_cowboy.png" style="width: 1em; height: 100%">
+        <header><img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
             Search from 100 Wikipedia articles
-            <img src="static/pensive_cowboy.png" style="width: 1em; height: 100%"></header>
+            <img src="static/pensive_cowboy.png" style="width: 1em" id="rotate"></header>
         <!--Reload the page with variable "query" in the URL-->
         <div class="dropdown">
             <button class="dropbtn">Links</button>
@@ -242,16 +259,18 @@
                 {% endif %}
                 {% if item.name is undefined %}
                     <tr>
-                        <td> {{ item }}</td>
+                        <td><img src="static/cowboy_crying.png" style="width: 1em;" id="rotate"> {{ item }}</td>
                     </tr>
                 {% endif %}
             <!--End for loop-->
             {% endfor %}
         </table>
         <footer>
-            <p>Image by <a href="https://pixabay.com/users/devanath-1785462/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
+            <span>Image by <a href="https://pixabay.com/users/devanath-1785462/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
                 Devanath</a> from <a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
-                    Pixabay</a> Copyright &copy; Yehaw!</p>
+                    Pixabay</a>
+				<br>Crying cowboy icon by <a href="https://www.flaticon.com/authors/pixel-perfect" title="Pixel perfect">
+					Pixel perfect</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></span>
         </footer>
     </body>
 </html>
