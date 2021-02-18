@@ -14,7 +14,6 @@ def stemmer(file):
     porter = PorterStemmer()
 
     token_words = word_tokenize(file)
-    token_words
     stem_sentence = []
     for word in token_words:
         stem_sentence.append(porter.stem(word))
