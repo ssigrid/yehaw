@@ -9,7 +9,7 @@
         background-size: 100%;
         background-position: bottom left;
         background-attachment: fixed;
-        color:rgba(51, 38, 28)
+        color:rgba(51, 38, 28);
     }
 
     header {
@@ -35,7 +35,7 @@
         margin-top: 1%;
         padding: 5px;
         border-radius: 5px;
-        color:rgb(51, 38, 28)
+        color:rgb(51, 38, 28);
 
     }
 
@@ -127,6 +127,10 @@
 
     a:active {
         color: rgb(151, 38, 28);
+    }
+
+    .articlename {
+        font-size: 18px;
     }
 
 
@@ -244,9 +248,9 @@
                     {% if item.score is defined %}
                     <tr>
                         <td> {{ item["rank"] }}</td>
-                        <td> {{ item["name"] }}</td>
+                        <td class="articlename"> {{ item["name"] }}</td>
                         <td> {{ item["score"] }}</td>
-                        <td class="resultentry"> {{ item["text"] }}</td>
+                        <td class="resultentry"> {{ item["text"] }}  </td>
                     </tr>
                     {% endif %}
                     {% if item.score is undefined %}
