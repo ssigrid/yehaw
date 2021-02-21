@@ -133,6 +133,26 @@
         font-size: 18px;
     }
 
+	/* Link inside the header */
+	header a {
+		color: rgb(255, 213, 192);
+	}
+	
+	header a:link {
+        color: rgb(255, 213, 192);
+    }
+
+    header a:visited {
+        color: rgb(255, 213, 192);
+    }
+
+    header a:hover {
+        color: rgb(255, 213, 192);
+    }
+
+    header a:active {
+        color: rgb(255, 213, 192);
+    }
 
     .dropbtn {
   background-color: rgb(161, 48, 48);
@@ -147,7 +167,7 @@
   
 }
 
-/* The container <div> - needed to position the dropdown content */
+/* The container div - needed to position the dropdown content */
 .dropdown {
   position: absolute;
   display: inline-block;
@@ -209,7 +229,8 @@
     <body>
         <div>
         <header><img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
-            Search from 100 Wikipedia articles
+            <a href="/search">
+			Search from 100 Wikipedia articles</a>
             <img src="static/pensive_cowboy.png" style="width: 1em" id="rotate"></header>
         <!--Reload the page with variable "query" in the URL-->
         <div class="dropdown">
@@ -240,6 +261,7 @@
                 For stemming, leave the quotes out. </td>
             </tr>
         </table>
+		{% if matches %}
         <table>
             <!--Go through each item in the "matches" variable sent from
                 search() function in the Flask app-->
@@ -269,8 +291,10 @@
             <!--End for loop-->
             {% endfor %}
         </table>
+		{% endif %}
+		
         <footer>
-            <span>Image by <a href="https://pixabay.com/users/devanath-1785462/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
+            <span>Background image by <a href="https://pixabay.com/users/devanath-1785462/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
                 Devanath</a> from <a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
                     Pixabay</a>
 				<br>Crying cowboy icon by <a href="https://www.flaticon.com/authors/pixel-perfect" title="Pixel perfect">
