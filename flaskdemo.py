@@ -254,6 +254,57 @@ g_matrix = gv1.fit_transform(wikidoc).T.tocsr()
 gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
 g_matrix_stem = gv2.fit_transform(wikistem).T.tocsr()
 
+#  PLANNING
+def seaborn(matches):
+    import numpy as np
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    sns.set_theme(style="white", context="talk")
+
+    x = []
+    y = []
+    for pair in matches:
+        x.append(pair[0])
+        y.append(pair[1])
+    
+    sns.barplot(x, y)
+    sns.color_palette("rocket")
+    plt.xticks(rotation=45)
+    plt.show()
+    
+    
+def wordfreq(articles):
+    dict_articles = []
+    for article in articles: 
+        dictionary = {}
+        for word in article: 
+            if word not in dictionary:
+                dictionary[word] = 1
+            else:
+                dictionary[word] += 1
+        dict_articles.append(dictionary)
+    return dict_articles
+
+
+def freqhits(wordfreqs, streotype):
+    matches = {}
+    book_name = 0 ## merkkaa tällä hetkellä sitä mikä sit ois kirjan nimi, nyt vaan numero
+    for dictio in wordfreqs:
+        for key in dictio:
+            if streotype == key:
+                value = dictio[key]
+                matches[book_name] = value
+        book_name += 1
+    sorted_matches = sorted(matches.items(), key=lambda x: x[1], reverse=True)
+    if len(sorted_matches) > 10:
+        sorted_matches = sorted_matches[0:9]
+    return sorted_matches
+
+# nää varmain tulee siirtymään pääfunktioon 
+articles_dict = wordfreq(wikidoc)
+frequencies = freqhits(articles_dict, "word") ## tää sana korvataan inputilla 
+seaborn(frequencies) ##tää piirtää varsinaisen kuvan
+
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
 #Function search() is associated with the address base URL + "/search"
