@@ -97,7 +97,7 @@ def search_file(query):
     # and append them into the results list
     if (len(ranked_scores_and_doc_ids)) == 1:
         #results.append("Your query {:s} matches the following document:".format(query))
-        resultsitem = {'name': "Article Title", 'text': "Your query {:s} matched one article. Here are the first 25 words of it:".format(query), 'score': "Score", 'rank': "#"}
+        resultsitem = {'name': "Article Title", 'text': "Your query \"{:s}\" matched one article. Here are the first 25 words of it:".format(query), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             roundedscore = "{:.4f}".format(score)   # we're only printing four decimals now
@@ -105,7 +105,7 @@ def search_file(query):
             results.append(resultsitem)
     elif (len(ranked_scores_and_doc_ids)) <= 10:
         #results.append("Your query {:s} matches the following {:d} documents:".format(query, len(ranked_scores_and_doc_ids)))
-        resultsitem = {'name': "Article Title", 'text': "Your query {:s} matched {:d} articles. Here are the first 25 words of them in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
+        resultsitem = {'name': "Article Title", 'text': "Your query \"{:s}\" matched {:d} articles. Here are the first 25 words of them in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             roundedscore = "{:.4f}".format(score)
@@ -113,7 +113,7 @@ def search_file(query):
             results.append(resultsitem)
     else:
         #results.append("Your query {:s} matches {:d} documents, out of which it matches the following 10 documents the best:".format(query, len(ranked_scores_and_doc_ids)))
-        resultsitem = {'name': "Article Title", 'text': "Your query {:s} matched {:d} articles. Here are the first 25 words of the 10 articles your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
+        resultsitem = {'name': "Article Title", 'text': "Your query \"{:s}\" matched {:d} articles. Here are the first 25 words of the 10 articles your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             if 0 <= i <= 9:
@@ -255,7 +255,7 @@ gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2"
 g_matrix_stem = gv2.fit_transform(wikistem).T.tocsr()
 
 #  PLANNING
-def seaborn(matches):
+def seabornplot(matches):
     import numpy as np
     import seaborn as sns
     import matplotlib.pyplot as plt
@@ -277,33 +277,30 @@ def wordfreq(articles):
     dict_articles = []
     for article in articles: 
         dictionary = {}
-        for word in article: 
-            if word not in dictionary:
-                dictionary[word] = 1
+        words = article.split()
+        for word in words:
+            if word.lower() not in dictionary:
+                dictionary[word.lower()] = 1
             else:
-                dictionary[word] += 1
+                dictionary[word.lower()] += 1
         dict_articles.append(dictionary)
     return dict_articles
 
 
 def freqhits(wordfreqs, streotype):
     matches = {}
-    book_name = 0 ## merkkaa tällä hetkellä sitä mikä sit ois kirjan nimi, nyt vaan numero
+    book_number = 0
     for dictio in wordfreqs:
         for key in dictio:
-            if streotype == key:
+            if streotype.lower() == key:
                 value = dictio[key]
+                book_name = wikinames[book_number]
                 matches[book_name] = value
-        book_name += 1
+        book_number += 1
     sorted_matches = sorted(matches.items(), key=lambda x: x[1], reverse=True)
     if len(sorted_matches) > 10:
-        sorted_matches = sorted_matches[0:9]
+        sorted_matches = sorted_matches[0:10]
     return sorted_matches
-
-# nää varmain tulee siirtymään pääfunktioon 
-articles_dict = wordfreq(wikidoc)
-frequencies = freqhits(articles_dict, "word") ## tää sana korvataan inputilla 
-seaborn(frequencies) ##tää piirtää varsinaisen kuvan
 
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
@@ -324,7 +321,13 @@ def search():
         # Receive the results as a dictionary
         if re.search(r'^".*"$', r_query):
             try:
+                r_query = re.sub(r'^"(.*)"$', r'\1', r_query)
                 results = search_file(r_query)
+                articles_dict = wordfreq(wikidoc)
+                frequencies = freqhits(articles_dict, r_query) ## tää sana korvataan inputilla 
+                print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
+                                    # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
+                seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
                 # Make the wikipedia article dictionary refer to the results dictionary
                 # so that the html code can reference the results' entries
                 wikidictionary = results
@@ -332,10 +335,15 @@ def search():
                 # so that the html code can reference the results' entries
                 matches = wikidictionary
             except IndexError:
-                matches.append("Your query {:s} didn't match any documents.".format(r_query))
+                matches.append("Your query \"{:s}\" didn't match any documents.".format(r_query))
         else:
             try:
                 results = search_file_stem(r_query)
+                articles_dict = wordfreq(wikidoc)
+                frequencies = freqhits(articles_dict, r_query) ## tää sana korvataan inputilla 
+                print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
+                                    # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
+                seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
                 wikidictionary = results
                 matches = wikidictionary
             except IndexError:
@@ -392,6 +400,12 @@ def search():
                 results.append(resultsitem)
                 i = i+1
                 
+        articles_dict = wordfreq(wikidoc)
+        frequencies = freqhits(articles_dict, b_query) ## tää sana korvataan inputilla 
+        print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
+                            # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
+        seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
+        
         # Make the wikipedia article dictionary refer to the results dictionary
         # so that the html code can reference the results' entries
         wikidictionary = results
