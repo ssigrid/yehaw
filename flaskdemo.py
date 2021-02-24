@@ -324,7 +324,7 @@ def search():
                 r_query = re.sub(r'^"(.*)"$', r'\1', r_query)
                 results = search_file(r_query)
                 articles_dict = wordfreq(wikidoc)
-                frequencies = freqhits(articles_dict, r_query) ## tää sana korvataan inputilla 
+                frequencies = freqhits(articles_dict, r_query)
                 print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
                                     # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
                 seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
@@ -339,11 +339,12 @@ def search():
         else:
             try:
                 results = search_file_stem(r_query)
-                articles_dict = wordfreq(wikidoc)
-                frequencies = freqhits(articles_dict, r_query) ## tää sana korvataan inputilla 
-                print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
+                # articles_dict = wordfreq(wikistem)
+                # stem_q = stemmer(r_query)
+                # frequencies = freqhits(articles_dict, stem_q)
+                # print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
                                     # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
-                seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
+                # seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
                 wikidictionary = results
                 matches = wikidictionary
             except IndexError:
@@ -401,7 +402,7 @@ def search():
                 i = i+1
                 
         articles_dict = wordfreq(wikidoc)
-        frequencies = freqhits(articles_dict, b_query) ## tää sana korvataan inputilla 
+        frequencies = freqhits(articles_dict, b_query)
         print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
                             # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
         seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
