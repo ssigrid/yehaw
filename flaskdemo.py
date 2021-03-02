@@ -182,32 +182,19 @@ def rewrite_token(t):
      "or": "|", "OR": "|",
      "not": "1 -", "NOT": "1 -",
      "(": "(", ")": ")"}          # operator replacements
+    
+    # Testing if the query is in the Wikipedia articles:
+    if t not in terms:
+        # Operators are left in place but other queries without hits get replaced with zeroes:
+        if t not in d:
+            return "np.zeros((1, len(wikidoc)), dtype=int)"   # returns an array filled with zeroes that has the length of the number of wikipedia articles
+    
+    # Queries that do have hits get the matrix treatement:
     return d.get(t, 'td_matrix[t2i["{:s}"]]'.format(t))
 
 def rewrite_query(query): # rewrite every token in the query
-    return " ".join(rewrite_token(t) for t in query.split())
-
-def test_query(query):
-    
-    """ Function that rewrites the query with other functions, writes it into a list,
-    replacing words that cause KeyError with a word that doesn't (but still doesn't return any hits),
-    and then makes that list into a string again
-    """
-    
-    rewritten = rewrite_query(query)
-    r_list = []
-    for t in rewritten.split():
-        try:
-            eval(t)                                         # Eval runs the string as a Python command
-            r_list.append(t)
-        except KeyError:                                    # I used 'not the' because the word the appears in all articles
-            r_list.append('1 - td_matrix[t2i["the"]]')      # (Not how it's supposed to be done but I ran out of ideas lål)
-        except SyntaxError:
-            r_list.append(t)                                # Rewritten and/or/not stay the same
-    r_join = " ".join(r_list)
-    
-    return r_join   # returns the rewritten list
-    
+    return " ".join(rewrite_token(t) for t in query.split()) # splits the query into words and returns the rewritten, rejoined query
+   
 # ARTICLE EXCERPT FUNCTION:
     
 def first_25_words(article):
@@ -323,11 +310,14 @@ def search():
             try:
                 r_query = re.sub(r'^"(.*)"$', r'\1', r_query)
                 results = search_file(r_query)
-                articles_dict = wordfreq(wikidoc)
-                frequencies = freqhits(articles_dict, r_query)
-                print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
+                
+                # PLOTTING:
+                #articles_dict = wordfreq(wikidoc)
+                #frequencies = freqhits(articles_dict, r_query)
+                #print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
                                     # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
-                seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
+                #seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
+                
                 # Make the wikipedia article dictionary refer to the results dictionary
                 # so that the html code can reference the results' entries
                 wikidictionary = results
@@ -339,12 +329,15 @@ def search():
         else:
             try:
                 results = search_file_stem(r_query)
+                
+                # PLOTTING:
                 # articles_dict = wordfreq(wikistem)
                 # stem_q = stemmer(r_query)
                 # frequencies = freqhits(articles_dict, stem_q)
                 # print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
                                     # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
                 # seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
+                
                 wikidictionary = results
                 matches = wikidictionary
             except IndexError:
@@ -356,7 +349,7 @@ def search():
         #Initialize list of match results
         results = []
         
-        query = test_query(b_query)
+        query = rewrite_query(b_query)
         sparse_td_matrix = sparse_matrix.T.tocsr()
         
         try:
@@ -372,7 +365,7 @@ def search():
         
         # Make the boolean search results into dictionary entries for name, number of hits, and rank,
         # and append them into the results list
-        i = 0   # using a counter here cause i'm a noob lel
+        i = 0
         if len(hits_list) == 0:
             matches.append("Your query '{:s}' didn't match any documents.".format(b_query))     # no dictionary to make the html if statement work properly
             return render_template('index.html', matches=matches)
@@ -401,11 +394,12 @@ def search():
                 results.append(resultsitem)
                 i = i+1
                 
-        articles_dict = wordfreq(wikidoc)
-        frequencies = freqhits(articles_dict, b_query)
-        print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
+        # PLOTTING:
+        #articles_dict = wordfreq(wikidoc)
+        #frequencies = freqhits(articles_dict, b_query)
+        #print(frequencies)  # tää on täällä koska ohjelma jää muuten looppaamaan ja html-sivu ei toimi
                             # poistetaan sit joskus kun saadaan plotit toimimaan kunnolla
-        seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
+        #seabornplot(frequencies) ##tää piirtää varsinaisen kuvan
         
         # Make the wikipedia article dictionary refer to the results dictionary
         # so that the html code can reference the results' entries
