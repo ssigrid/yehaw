@@ -6055,7 +6055,7 @@
 
 
 
-<song name="DRINKING SONG!>
+<song name="DRINKING SONG!">
 
 
   Drink that rot gut, drink that rot gut,
