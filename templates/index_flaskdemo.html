@@ -73,23 +73,12 @@
         padding: 5px;
         padding-left: 20px;
     }
-	
-	.matchestable td {
-		vertical-align: text-top;
-    }
 
     .resultentry {
         max-width: 550px;
-		border-bottom: 1px solid rgb(51, 38, 28);
     }
 
     input[type=text] {
-        border-color:rgb(93, 8, 104);
-        padding: 5px;
-		border-radius: 5px;
-    }
-	
-	input[type=number] {
         border-color:rgb(93, 8, 104);
         padding: 5px;
 		border-radius: 5px;
@@ -272,58 +261,25 @@
                 For stemming, leave the quotes out. </td>
             </tr>
         </table>
-		<table>
-            <tr>
-                <form>
-                <td><input type="checkbox" id="noun" name="noun">
-				<label for="noun">Noun</label></td>
-				<td><input type="checkbox" id="propn" name="propn">
-				<label for="propn">Proper noun</label></td>
-				<td><input type="checkbox" id="adj" name="adj">
-				<label for="adj">Adjective</label></td>
-				
-				<td class="inputbar"><input type="number" name="posnum" min="1" max="153">
-				<input type="submit" value="SingleRank"></td>
-                </form>
-            </tr>
-        </table>
 		{% if matches %}
-        <table class="matchestable">
+        <table>
             <!--Go through each item in the "matches" variable sent from
                 search() function in the Flask app-->
             {% for item in matches %}
                 {% if item.name is defined %}
                     {% if item.score is defined %}
-						<tr>
-							<td>{{ item["rank"] }}</td>
-							<td class="articlename">{{ item["name"] }}</td>
-							<td>{{ item["score"] }}</td>
-							<td class="resultentry">
-								{% if item.title is defined %}
-									{{ item["title"] }}
-								{% endif %}
-								{% if item.title is undefined %}
-									{% for entry in item.text %}
-										<div>{{ entry }}</div>
-									{% endfor %}
-								{% endif %}
-							</td>
-						</tr>
+                    <tr>
+                        <td> {{ item["rank"] }}</td>
+                        <td class="articlename"> {{ item["name"] }}</td>
+                        <td> {{ item["score"] }}</td>
+                        <td class="resultentry"> {{ item["text"] }}  </td>
+                    </tr>
                     {% endif %}
                     {% if item.score is undefined %}
                     <tr>
                         <td> {{ item["rank"] }}</td>
-                        <td class="articlename">{{ item["name"] }}</td>
-                        <td class="resultentry">
-							{% if item.title is defined %}
-								{{ item["title"] }}
-							{% endif %}
-							{% if item.title is undefined %}
-								{% for entry in item.text %}
-									<div>{{ entry }}</div>
-								{% endfor %}
-							{% endif %}
-						</td>
+                        <td class="articlename"> {{ item["name"] }}</td>
+                        <td class="resultentry"> {{ item["text"] }}</td>
                     </tr>
                     {% endif %}
                 {% endif %}

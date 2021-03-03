@@ -1342,7 +1342,7 @@
 
 
 
-<song name="THE "METIS" SONG OF THE BUFFALO HUNTERS">
+<song name="THE 'METIS' SONG OF THE BUFFALO HUNTERS">
 
 
   Hurrah for the buffalo hunters!
@@ -6395,7 +6395,7 @@
 
 
 
-<song name="THE SONG OF THE "METIS" TRAPPER">
+<song name="THE SONG OF THE 'METIS' TRAPPER">
 
 
   Hurrah for the great white way!

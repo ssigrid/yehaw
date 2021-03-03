@@ -17,12 +17,12 @@ def read_file(file):
 
     return filelist
 	
-wiki = "testdoc.txt"
-wikidoc = read_file(wiki)
+cowboy = "textrankdoc.txt"
+cowboydoc = read_file(cowboy)
 	
 pos = {'PROPN'}
 extractor = pke.unsupervised.SingleRank()
-extractor.load_document(input=wikidoc, language='en', normalization=None)
+extractor.load_document(input=cowboydoc, language='en', normalization=None)
 extractor.candidate_selection(pos=pos)
 extractor.candidate_weighting(window=10, pos=pos)
 keyphrases = extractor.get_n_best(n=10)
