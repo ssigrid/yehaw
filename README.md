@@ -26,14 +26,26 @@ NOTE: If Windows command line can't run the command, move into the Scripts direc
 >activate
 
 
-Install Flask, nltk, sklearn, and numpy:
->pip install Flask
+Install Flask, nltk, sklearn, seaborn, pke, spacy and numpy:
+>pip3 install Flask
 
->pip install nltk
+>pip3 install nltk
 
->pip install  sklearn
+>pip3 install  sklearn
 
->pip install numpy
+>pip3 install numpy
+
+>pip3 install seaborn
+
+>pip3 install spacy
+
+>pip3 install git+https://github.com/boudinfl/pke.git
+
+>python3 -m nltk.downloader stopwords
+
+>python3 -m nltk.downloader universal_tagset
+
+>python3 -m spacy download en
 
 
 ##### Run this Flask application
