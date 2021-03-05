@@ -299,6 +299,23 @@ g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
 gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
 g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
 
+
+def plotting_data(song):
+    """ creates data for the seaborn so that y = (theme)words and x = their tf-idf score
+    """
+    tf = {}
+    tfidf = {}
+    fdist = nltk.FreqDist(w.lower() for w in nltk.corpus.gutenberg.words(song))
+    for w, f in fdist.most_common():
+        tf[w] = 1 + math.log10(f)
+        tfidf[w] = tf[w] * idf[w]
+    tfidf_sorted_words = soted(tfidf.keys(), key=lambda w: tfidf[w], reverse=True)
+    top10 = tfidf_sorted_words[0:10]
+    return top10
+
+#data = plotting_data(song)         ## this would mean the song
+# def plotting(data):
+    
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
 #Function search() is associated with the address base URL + "/search"
