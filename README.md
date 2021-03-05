@@ -26,7 +26,7 @@ NOTE: If Windows command line can't run the command, move into the Scripts direc
 >activate
 
 
-Install Flask, nltk, sklearn, seaborn, pke, spacy and numpy:
+You need to have python3 in order for the code to work. Install also Flask, nltk, sklearn, seaborn, pke, spacy and numpy:
 >pip3 install Flask
 
 >pip3 install nltk
