@@ -12,11 +12,11 @@ from bs4 import BeautifulSoup
 #Initialize Flask instance
 app = Flask(__name__)
 
-# this splits the songs into a list:
+def list_newlines(file):
 
-def one_item_per_song(file):
-
-    """ Explain this
+    """ Splits the source file with the songs into a list based on the "</song>" tag,
+        deletes the <song name="[insert name]"> tags from the list,
+        leaves the newlines as they are
     """
 
     openfile = open(file, "r", encoding='utf-8')
@@ -28,43 +28,64 @@ def one_item_per_song(file):
     i = 0
     for onesong in songlist:
         songlist[i] = re.sub(r'\n?<song name="[^"]+">', r'', onesong)
+        # Delete the symbol at the beginning of the file
+        songlist[i] = re.sub(r'\ufeff', r'', songlist[i])
         i = i + 1
     openfile.close()
 
-    return songlist     # returns the file split into a list where every song is an item
+    return songlist     # returns a list where every song is an item on said list
     
-def one_line_per_song(file):
+def list_titles(songfile):
 
-    """ Explain this
+    """ Splits the source file with the songs into a list based on the "</song>" tag,
+        deletes the newline characters and
+        substitutes the <song name="[insert name]"> tag with the name in it
     """
 
-    openfile = open(file, "r", encoding='utf-8')
+    # List where the rewritten list items go (any other way of doing this messed other functions up for some reason)
+    rewrittensongs = []
+    
+    openfile = open(songfile, "r", encoding='utf-8')
     readfile = openfile.read()
     songlist = readfile.split("</song>")
     # Delete an empty line from the end of the list:
     songlist = songlist[:-1]
+    # Delete song name tags:
     i = 0
     for onesong in songlist:
         songlist[i] = re.sub(r'\n', r'', onesong)
+        songlist[i] = re.sub(r'\n?<song name="([^"]+)">', r'\1', songlist[i])
         i = i + 1
     openfile.close()
 
-    return songlist     # returns the file split into a list where every song is an item on one line
+    return songlist     # returns a list where every song is an item, name included but without newline characters
 
-def get_song_name(line):
+def get_song_name(i):
 
-    """ Explain this
+    """ Splits the source file with the songs into a list based on the "</song>" tag,
+        uses the given interger (i) to turn the list into an item
+        that only contains the song whose name we want to get,
+        searches said item using BeautifulSoup's html parser for a tag called 'song',
+        then searches inside that song tag for a 'name' attribute,
+        and returns the line of string that the name attribute is attached to
     """
 
-    soupsong = BeautifulSoup(line, 'html.parser')
+    openfile = open(songs, "r", encoding='utf-8')
+    readfile = openfile.read()
+    songlist = readfile.split("</song>")
+    # Delete an empty line from the end of the list:
+    songlist = songlist[i]
+    openfile.close()
+    
+    soupsong = BeautifulSoup(songlist, 'html.parser')
     for songtag in soupsong.find_all('song'):
         songname = songtag.get('name')
     
-    return songname
+    return songname     # returns the name of the song as string
 
 def relevance_songs(query):
 
-    """ Explain this
+    """ Relevance search (non-stem, non-n-gram)
     """
     
     # Initialize list of results
@@ -81,33 +102,37 @@ def relevance_songs(query):
     sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     
     # Output result
-    # Make the relevance search results into dictionary entries for song title, number of hits, and rank,
-    # and append them into the results list
+    # Make the relevance search results into dictionary entries
+    # where name=song name, text=lyrics, score=relevance search score, rank=number of song in the results,
+    # and append them into the results list:
+    
+    # The first entry is different and has 'title' as a key instead of 'text' so it gets printed properly on the html page,
+    # what exactly the title key says depends on the length of the ranked hit (i.e. how many hits the query has)
     if len(ranked_scores_and_doc_ids) == 1:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched one song. Here are its lyrics:".format(query), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             roundedscore = "{:.4f}".format(score)   # we're only printing four decimals now
-            newlines = song_item[doc_idx]
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
+            newlines = songs_newlines[doc_idx]
+            newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(song_line[doc_idx]), 'text': newlines, 'score': roundedscore, 'rank': i+1}
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1}
             results.append(resultsitem)
     elif len(ranked_scores_and_doc_ids) <= 10:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are their lyrics in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             roundedscore = "{:.4f}".format(score)
-            newlines = song_item[doc_idx]
+            newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(song_line[doc_idx]), 'text': newlines, 'score': roundedscore, 'rank': i+1}
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1}
             results.append(resultsitem)
     else:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are the lyrics of the 10 songs your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
@@ -115,13 +140,13 @@ def relevance_songs(query):
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             if 0 <= i <= 9:
                 roundedscore = "{:.4f}".format(score)
-                newlines = song_item[doc_idx]
+                newlines = songs_newlines[doc_idx]
                 newlines = re.sub(r'\n\n\n', r'\n', newlines)
                 newlines = re.sub(r'\n\n\n', r'\n', newlines)
                 newlines = newlines.split("\n")
                 if len(newlines[0]) == 0:
                     newlines = newlines[1:] # no empty line at the beginning
-                resultsitem = {'name': get_song_name(song_line[doc_idx]), 'text': newlines, 'score': roundedscore, 'rank': i+1}
+                resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1}
                 results.append(resultsitem)
           
     return results      # return dictionary of results
@@ -134,11 +159,11 @@ def rewrite_token(t):
      "not": "1 -", "NOT": "1 -",
      "(": "(", ")": ")"}          # operator replacements
     
-    # Testing if the query is in the Wikipedia articles:
+    # Testing if the query is in terms (which contains all words in the searched material):
     if t not in terms:
         # Operators are left in place but other queries without hits get replaced with zeroes:
         if t not in d:
-            return "np.zeros((1, len(song_line)), dtype=int)"   # returns an array filled with zeroes that has the length of the number of wikipedia articles
+            return "np.zeros((1, len(songs_nonewlines)), dtype=int)"   # returns an array filled with zeroes that has the length of the number of songs
     
     # Queries that do have hits get the matrix treatement:
     return d.get(t, 'td_matrix[t2i["{:s}"]]'.format(t))
@@ -148,86 +173,104 @@ def rewrite_query(query): # rewrite every token in the query
 
 def boolean_songs(b_query, hits_list):
     
-    """ Explain this
+    """ Boolean search (exact match, non-n-gram)
     """
     
     # Initialize list of results
     results = []
     
-    # Make the boolean search results into dictionary entries for name, number of hits, and rank,
-    # and append them into the results list
+    # Make the boolean search results into dictionary entries
+    # where name=song name, text=lyrics, rank=number of song in the results,
+    # and append them into the results list:
+    
+    # The first entry is different and has 'title' as a key instead of 'text' so it gets printed properly on the html page,
+    # what exactly the title key says depends on the length of the ranked hit (i.e. how many hits the query has)
     i = 0
     if len(hits_list) == 1:
         resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched one song. Here are its lyrics:".format(b_query), 'rank': "#"}
         results.append(resultsitem)
         for doc_idx in hits_list:
-            newlines = song_item[doc_idx]
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
+            newlines = songs_newlines[doc_idx]
+            newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(song_line[doc_idx]), 'text': newlines, 'rank': i+1}
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1}
             results.append(resultsitem)
             i = i+1
     elif len(hits_list) <= 10:
         resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched {:d} songs. Here are their lyrics:".format(b_query, len(hits_list)), 'rank': "#"}
         results.append(resultsitem)
         for doc_idx in hits_list:
-            newlines = song_item[doc_idx]
+            newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(song_line[doc_idx]), 'text': newlines, 'rank': i+1}
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1}
             results.append(resultsitem)
             i = i+1
     else:
         resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched {:d} songs. Here are the lyrics of the first ten songs:".format(b_query, len(hits_list)), 'rank': "#"}
         results.append(resultsitem)
         for doc_idx in hits_list[0:10]:
-            newlines = song_item[doc_idx]
+            newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(song_line[doc_idx]), 'text': newlines, 'rank': i+1}
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1}
             results.append(resultsitem)
             i = i+1
 
     return results      # return dictionary of results
 
-def single_rank(pos, songnumber):    
+def single_rank(pos, songnumber):
     
-    """ Explain this
+    """ Extracts words that are most important to the text
+        based on the given part-of-speech variable and the index number of the song
     """
     
     # Initialize list of results
     results = []
 
-    singlesong = song_item[songnumber]
+    # Find the song to analyze from the list where every song is one item without newlines
+    singlesong = songs_nonewlines[songnumber]
+    
+    # Create SingleRank extractor
     extractor = pke.unsupervised.SingleRank()
+    
+    # Load the content of the song
     extractor.load_document(input=singlesong, language='en', normalization=None)
+    
+    # Select candidates based on what checkboxes the search page user selected (e.g. 'PROPN')
+    # SingleRank selects the longest sequences of the given pos as candidates
     extractor.candidate_selection(pos=pos)
+    
+    # Weight the candidates using the sum of their word's scores that are computed using random walk
+    # In the graph (in case we draw it), nodes are words of certain part-of-speech
+    #that are connected if they occur in a window of 10 words
     extractor.candidate_weighting(window=10, pos=pos)
+    
+    # Get the 10-highest scored candidates as keyphrases
+    # Keyphrases come in tuples (iirc) where the first one is the keyword/phrase and the second one is its score
     keyphrases = extractor.get_n_best(n=10)
     
+    # Make the keyphrase search results into dictionary entries
+    # where name=keyword/keyphrase, title=TBA, score=score, rank=number of song in the results,
+    # and append them into the results list:
     if len(keyphrases) == 0:
+        # In the rare case where there are no results, no dictionary entry is created:
         results.append("No hits.")
     else:
         i = 0
-        resultsitem = {'name': "Keyword(s)", 'title': "Song number {:d} is called {:s}.".format(songnumber+1, get_song_name(song_line[songnumber])), 'score': "Score", 'rank': "#"}
+        resultsitem = {'name': "Keyword(s)", 'title': "Song number {:d} is called {:s}.".format(songnumber+1, get_song_name(songnumber)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         for hit in keyphrases:
             roundedscore = "{:.4f}".format(hit[1])
-            newlines = song_item[songnumber]
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = newlines.split("\n")
-            if len(newlines[0]) == 0:
-                newlines = newlines[1:] # no empty line at the beginning
             resultsitem = {'name': hit[0], 'title': "This is where we would put an example of the keyword in the song.", 'score': roundedscore, 'rank': i+1}
             results.append(resultsitem)
             i = i+1
@@ -237,23 +280,24 @@ def single_rank(pos, songnumber):
 # SOURCE FILE GETTING HANDLED:
 
 songs = "cowboy_songs.txt"
-song_item = one_item_per_song(songs)
-song_line = one_line_per_song(songs)
-cowboydictionary = []
+songs_newlines = list_newlines(songs)   # this is needed for printing the songs on the html page, it has newlines
+songs_nonewlines = list_titles(songs)   # this is where the query search happens, it has no newlines but it does have song titles
+cowboydictionary = []                   # it's a surprise tool that will help us later :)
+                                        # (i.e. there needs to exist a dictionary even before searches for the html to work for some reason)
 
 # VECTORS AND MATRICES:
 
 cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
-sparse_matrix = cv.fit_transform(song_line)
+sparse_matrix = cv.fit_transform(songs_nonewlines)
 dense_matrix = sparse_matrix.todense()
 td_matrix = dense_matrix.T
 terms = cv.get_feature_names()
 t2i = cv.vocabulary_
 
 gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
-g_matrix = gv1.fit_transform(song_line).T.tocsr()
+g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
 gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
-g_matrix_stem = gv2.fit_transform(song_line).T.tocsr()
+g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
 
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
@@ -269,6 +313,8 @@ def search():
     n_pos = request.args.get('noun')
     propn_pos = request.args.get('propn')
     adj_pos = request.args.get('adj')
+    
+    #Get index number of the song for SingleRank analysis from URL variable
     posnum = request.args.get('posnum')
 
     #Initialize list of matches
@@ -325,6 +371,7 @@ def search():
             cowboydictionary = results
             matches = cowboydictionary
     
+    # Finding out what the final pos variable will be based on which x_pos variables exist
     if n_pos:
         if propn_pos:
             if adj_pos:
@@ -349,6 +396,7 @@ def search():
         if not posnum:
             matches.append("Please input the number of the song you want to analyze.")
     
+    # If the user inputed a number and checked one of the pos checkboxes, run single_rank to get results
     if posnum:
         songnumber = int(posnum)
         songnumber = songnumber - 1
