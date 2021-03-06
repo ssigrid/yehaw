@@ -83,6 +83,26 @@
 		border-bottom: 1px solid rgb(51, 38, 28);
     }
 
+	.firstentry {
+		display: inline-block;
+	}
+	
+	.hiddenentry {
+		display: none;
+	}
+	
+	.hovertoview {
+		color: powderblue;
+	}
+	
+	.entrybox:hover .hiddenentry {
+		display: inline-block;
+	}
+	
+	.entrybox:hover .hovertoview {
+		display: none;
+	}
+
     input[type=text] {
         border-color:rgb(93, 8, 104);
         padding: 5px;
@@ -241,7 +261,7 @@
         <div>
         <header><img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
             <a href="/search">
-			Search from 100 Wikipedia articles</a>
+			Search from 153 Cowboy Songs</a>
             <img src="static/pensive_cowboy.png" style="width: 1em" id="rotate"></header>
         <!--Reload the page with variable "query" in the URL-->
         <div class="dropdown">
@@ -283,7 +303,7 @@
 				<label for="adj">Adjective</label></td>
 				
 				<td class="inputbar"><input type="number" name="posnum" min="1" max="153">
-				<input type="submit" value="SingleRank"></td>
+				<input type="submit" value="TopicRank"></td>
                 </form>
             </tr>
         </table>
@@ -303,9 +323,16 @@
 									{{ item["title"] }}
 								{% endif %}
 								{% if item.title is undefined %}
+									<div class="entrybox">
 									{% for entry in item.text %}
-										<div>{{ entry }}</div>
+										{% if loop.first %}
+											<div class="firstentry">{{ entry }}<span class="hovertoview"><br>... [hover to see the rest]</span></div>
+										{% endif %}
+										{% if not loop.first %}
+											<div class="hiddenentry">{{ entry }}</div>
+										{% endif %}
 									{% endfor %}
+									</div>
 								{% endif %}
 							</td>
 						</tr>
@@ -319,17 +346,24 @@
 								{{ item["title"] }}
 							{% endif %}
 							{% if item.title is undefined %}
-								{% for entry in item.text %}
-									<div>{{ entry }}</div>
-								{% endfor %}
-							{% endif %}
+									<div class="entrybox">
+									{% for entry in item.text %}
+										{% if loop.first %}
+											<div class="firstentry">{{ entry }}<span class="hovertoview"><br>... [hover to see the rest]</span></div>
+										{% endif %}
+										{% if not loop.first %}
+											<div class="hiddenentry">{{ entry }}</div>
+										{% endif %}
+									{% endfor %}
+									</div>
+								{% endif %}
 						</td>
                     </tr>
                     {% endif %}
                 {% endif %}
                 {% if item.name is undefined %}
                     <tr>
-                        <td><img src="static/cowboy_crying.png" style="width: 1em;" id="rotate"> {{ item }}</td>
+                        <td><img src="static/cowboy_crying.png" style="width: 1em;" id="rotate">{{ item }}</td>
                     </tr>
                 {% endif %}
             <!--End for loop-->
