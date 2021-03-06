@@ -4,6 +4,8 @@ import re
 import numpy as np
 import spacy
 import pke
+import string
+from nltk.corpus import stopwords
 from nltk import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -228,7 +230,9 @@ def boolean_songs(b_query, hits_list):
 
     return results      # return dictionary of results
 
-def single_rank(pos, songnumber):
+# TOPIC RANK FUNCTION:
+
+def topic_rank(pos, songnumber):
     
     """ Extracts words that are most important to the text
         based on the given part-of-speech variable and the index number of the song
@@ -237,27 +241,34 @@ def single_rank(pos, songnumber):
     # Initialize list of results
     results = []
 
-    # Find the song to analyze from the list where every song is one item without newlines
+    # Find the correct song to analyze from the list where every song is one item without newlines
     singlesong = songs_nonewlines[songnumber]
     
-    # Create SingleRank extractor
-    extractor = pke.unsupervised.SingleRank()
+    # Create a TopicRank extractor
+    extractor = pke.unsupervised.TopicRank()
     
     # Load the content of the song
     extractor.load_document(input=singlesong, language='en', normalization=None)
     
-    # Select candidates based on what checkboxes the search page user selected (e.g. 'PROPN')
-    # SingleRank selects the longest sequences of the given pos as candidates
-    extractor.candidate_selection(pos=pos)
+    # Create a list of stopwords and select candidates
+    # based on what checkboxes the search page user selected (e.g. 'PROPN')
+    # TopicRank selects the longest sequences of the given parts-of-speech as candidates
+    # and ignores punctuation marks or stopwords as candidates
+    stoplist = list(string.punctuation)
+    stoplist += ['-lrb-', '-rrb-', '-lcb-', '-rcb-', '-lsb-', '-rsb-']
+    stoplist += stopwords.words('english')
+    extractor.candidate_selection(pos=pos, stoplist=stoplist)
     
-    # Weight the candidates using the sum of their word's scores that are computed using random walk
-    # In the graph (in case we draw it), nodes are words of certain part-of-speech
-    #that are connected if they occur in a window of 10 words
-    extractor.candidate_weighting(window=10, pos=pos)
+    # Build topics by grouping candidates with HAC (average linkage, threshold of 1/4 of shared stems)
+    # Weight the topics using random walk, and select the first occuring candidate from each topic
+    extractor.candidate_weighting(threshold=0.74, method='average')
     
     # Get the 10-highest scored candidates as keyphrases
     # Keyphrases come in tuples (iirc) where the first one is the keyword/phrase and the second one is its score
     keyphrases = extractor.get_n_best(n=10)
+    
+    # This will be used to build a graph out of the results at some point:
+    # build_topic_graph()
     
     # Make the keyphrase search results into dictionary entries
     # where name=keyword/keyphrase, title=TBA, score=score, rank=number of song in the results,
@@ -331,7 +342,7 @@ def search():
     propn_pos = request.args.get('propn')
     adj_pos = request.args.get('adj')
     
-    #Get index number of the song for SingleRank analysis from URL variable
+    #Get index number of the song for TopicRank analysis from URL variable
     posnum = request.args.get('posnum')
 
     #Initialize list of matches
@@ -388,7 +399,7 @@ def search():
             cowboydictionary = results
             matches = cowboydictionary
     
-    # Finding out what the final pos variable will be based on which x_pos variables exist
+    # Finding out what the final pos set used for TopicRank extraction will be, based on which x_pos variables the url query gave
     if n_pos:
         if propn_pos:
             if adj_pos:
@@ -413,12 +424,12 @@ def search():
         if not posnum:
             matches.append("Please input the number of the song you want to analyze.")
     
-    # If the user inputed a number and checked one of the pos checkboxes, run single_rank to get results
+    # If the user inputed a number and checked one of the pos checkboxes, run topic_rank to get results
     if posnum:
         songnumber = int(posnum)
         songnumber = songnumber - 1
         if n_pos or propn_pos or adj_pos:
-            results = single_rank(pos, songnumber)
+            results = topic_rank(pos, songnumber)
             cowboydictionary = results
             matches = cowboydictionary
         else:
