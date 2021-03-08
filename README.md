@@ -26,18 +26,11 @@ NOTE: If Windows command line can't run the command, move into the Scripts direc
 >activate
 
 
-You need to have python3 in order for the code to work. Install also Flask, nltk, sklearn, seaborn, pke, spacy and numpy:
->pip3 install Flask
+You need to have python3 in order for the code to work. Install also Flask, nltk, sklearn, seaborn, spacy, bs4 and numpy using pip3, in this way:
+>pip3 install \<example\>
 
->pip3 install nltk
 
->pip3 install  sklearn
-
->pip3 install numpy
-
->pip3 install seaborn
-
->pip3 install spacy
+Then install pke:
 
 >pip3 install git+https://github.com/boudinfl/pke.git
 
