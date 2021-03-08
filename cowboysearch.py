@@ -6,6 +6,7 @@ import spacy
 import pke
 import string
 import math
+import csv
 from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk import word_tokenize
@@ -317,20 +318,19 @@ g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
 
 
 def plotting_data(song):
-    """ creates data for the seaborn so that y = (theme)words and x = their tf-idf score
-    """
-    tf = {}
-    idf = defaultdict(float)
-    tfidf = {}
-    fdist = nltk.FreqDist(w.lower() for w in word_tokenize(song))
-    for w, f in fdist.most_common():
-        tf[w] = 1 + math.log10(f)
-        tfidf[w] = tf[w] * idf[w]
-    print(tfidf)
-    tfidf_sorted_words = sorted(tfidf.keys(), key=lambda w: tfidf[w], reverse=True)
-    top10 = tfidf_sorted_words[0:10]
     top10 = topic_rank(song)
-    return top10
+    row_list = [["keyword", "score"]]
+    for i in top10:
+        keyword = i[0]
+        score = i[1]
+        line = [keyword, score]
+        row_list.append(line)
+
+        
+    with open("songs.csv", "w", newline='') as file:
+        writer = csv.writer(file, delimiter= '|')
+        writer.writerows(row_list)    
+    return songs.csv
 
 
 def plotting(data):
@@ -338,7 +338,7 @@ def plotting(data):
     sns.set_theme(style="whitegrid")
 
     # Make the PairGrid
-    g = sns.PairGrid(x_vars=data.values, y_vars=data.keys, height=10, aspect=.25)
+    g = sns.PairGrid(x_vars=data.columns, y_vars=data.keys, height=10, aspect=.25)
     
 
     # Draw a dot plot using the stripplot function
