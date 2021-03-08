@@ -27,7 +27,7 @@ NOTE: If Windows command line can't run the command, move into the Scripts direc
 
 
 You need to have python3 in order for the code to work. Install also Flask, nltk, sklearn, seaborn, pke, spacy, bs4 and numpy using pip3, in this way:
->pip3 install <example>
+>pip3 install \<example\>
 
 
 Then install pke:
