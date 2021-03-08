@@ -5,6 +5,8 @@ import numpy as np
 import spacy
 import pke
 import string
+import math
+from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
@@ -119,9 +121,10 @@ def relevance_songs(query):
             newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
+            plotlines = songs_nonewlines[doc_idx]
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1}
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plott': plotlines}
             results.append(resultsitem)
     elif len(ranked_scores_and_doc_ids) <= 10:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are their lyrics in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
@@ -132,9 +135,10 @@ def relevance_songs(query):
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
+            plotlines = songs_nonewlines[doc_idx]
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1}
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plott': plotlines}
             results.append(resultsitem)
     else:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are the lyrics of the 10 songs your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
@@ -146,9 +150,10 @@ def relevance_songs(query):
                 newlines = re.sub(r'\n\n\n', r'\n', newlines)
                 newlines = re.sub(r'\n\n\n', r'\n', newlines)
                 newlines = newlines.split("\n")
+                plotlines = songs_nonewlines[doc_idx]
                 if len(newlines[0]) == 0:
                     newlines = newlines[1:] # no empty line at the beginning
-                resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1}
+                resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plott': plotlines}
                 results.append(resultsitem)
           
     return results      # return dictionary of results
@@ -232,7 +237,7 @@ def boolean_songs(b_query, hits_list):
 
 # TOPIC RANK FUNCTION:
 
-def topic_rank(pos, songnumber):
+def topic_rank(songnumber):
     
     """ Extracts words that are most important to the text
         based on the given part-of-speech variable and the index number of the song
@@ -242,13 +247,13 @@ def topic_rank(pos, songnumber):
     results = []
 
     # Find the correct song to analyze from the list where every song is one item without newlines
-    singlesong = songs_nonewlines[songnumber]
+    #singlesong = songs_nonewlines[songnumber]
     
     # Create a TopicRank extractor
     extractor = pke.unsupervised.TopicRank()
     
     # Load the content of the song
-    extractor.load_document(input=singlesong, language='en', normalization=None)
+    extractor.load_document(input=songnumber, language='en', normalization=None)
     
     # Create a list of stopwords and select candidates
     # based on what checkboxes the search page user selected (e.g. 'PROPN')
@@ -257,7 +262,7 @@ def topic_rank(pos, songnumber):
     stoplist = list(string.punctuation)
     stoplist += ['-lrb-', '-rrb-', '-lcb-', '-rcb-', '-lsb-', '-rsb-']
     stoplist += stopwords.words('english')
-    extractor.candidate_selection(pos=pos, stoplist=stoplist)
+    extractor.candidate_selection(pos=None, stoplist=stoplist)
     
     # Build topics by grouping candidates with HAC (average linkage, threshold of 1/4 of shared stems)
     # Weight the topics using random walk, and select the first occuring candidate from each topic
@@ -273,20 +278,20 @@ def topic_rank(pos, songnumber):
     # Make the keyphrase search results into dictionary entries
     # where name=keyword/keyphrase, title=TBA, score=score, rank=number of song in the results,
     # and append them into the results list:
-    if len(keyphrases) == 0:
+    #if len(keyphrases) == 0:
         # In the rare case where there are no results, no dictionary entry is created:
-        results.append("No hits.")
-    else:
-        i = 0
-        resultsitem = {'name': "Keyword(s)", 'title': "Song number {:d} is called {:s}.".format(songnumber+1, get_song_name(songnumber)), 'score': "Score", 'rank': "#"}
-        results.append(resultsitem)
-        for hit in keyphrases:
-            roundedscore = "{:.4f}".format(hit[1])
-            resultsitem = {'name': hit[0], 'title': "This is where we would put an example of the keyword in the song.", 'score': roundedscore, 'rank': i+1}
-            results.append(resultsitem)
-            i = i+1
+        #results.append("No hits.")
+    #else:
+        #i = 0
+        #resultsitem = {'name': "Keyword(s)", 'title': "Song number {:d} is called {:s}.".format(songnumber+1, get_song_name(songnumber)), 'score': "Score", 'rank': "#"}
+        #results.append(resultsitem)
+        #for hit in keyphrases:
+           # roundedscore = "{:.4f}".format(hit[1])
+           # resultsitem = {'name': hit[0], 'title': "This is where we would put an example of the keyword in the song.", 'score': roundedscore, 'rank': i+1}
+            #results.append(resultsitem)
+            #i = i+1
     
-    return results
+    return keyphrases
 
 # SOURCE FILE GETTING HANDLED:
 
@@ -315,13 +320,16 @@ def plotting_data(song):
     """ creates data for the seaborn so that y = (theme)words and x = their tf-idf score
     """
     tf = {}
+    idf = defaultdict(float)
     tfidf = {}
-    fdist = nltk.FreqDist(w.lower() for w in nltk.corpus.gutenberg.words(song))
+    fdist = nltk.FreqDist(w.lower() for w in word_tokenize(song))
     for w, f in fdist.most_common():
         tf[w] = 1 + math.log10(f)
         tfidf[w] = tf[w] * idf[w]
-    tfidf_sorted_words = soted(tfidf.keys(), key=lambda w: tfidf[w], reverse=True)
+    print(tfidf)
+    tfidf_sorted_words = sorted(tfidf.keys(), key=lambda w: tfidf[w], reverse=True)
     top10 = tfidf_sorted_words[0:10]
+    top10 = topic_rank(song)
     return top10
 
 
@@ -330,9 +338,7 @@ def plotting(data):
     sns.set_theme(style="whitegrid")
 
     # Make the PairGrid
-    g = sns.PairGrid(data.sort_values("total", ascending=False),
-                 x_vars=data.values, y_vars=data.keys,
-                 height=10, aspect=.25)
+    g = sns.PairGrid(x_vars=data.values, y_vars=data.keys, height=10, aspect=.25)
     
 
     # Draw a dot plot using the stripplot function
@@ -404,9 +410,11 @@ def search():
                 matches = cowboydictionary
 
                 for dictionary in matches:
-                    value = dictionary["text"]
-                    dataset = plotting_data(value)
-                    plot = plotting(dataset)
+                    for key in dictionary:
+                        if key == 'plott':
+                            value = dictionary[key]
+                            dataset = plotting_data(value)
+                            plot = plotting(dataset)
             except IndexError:
                 matches.append("Your query '{:s}' didn't match any documents.".format(r_query))
                 
