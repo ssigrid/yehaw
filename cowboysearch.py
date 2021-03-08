@@ -324,8 +324,35 @@ def plotting_data(song):
     top10 = tfidf_sorted_words[0:10]
     return top10
 
-#data = plotting_data(song)         ## this would mean the song
-# def plotting(data):
+
+def plotting(data):
+    import seaborn as sns
+    sns.set_theme(style="whitegrid")
+
+    # Make the PairGrid
+    g = sns.PairGrid(data.sort_values("total", ascending=False),
+                 x_vars=data.values, y_vars=data.keys,
+                 height=10, aspect=.25)
+    
+
+    # Draw a dot plot using the stripplot function
+    g.map(sns.stripplot, size=10, orient="h", jitter=False,
+        palette="flare_r", linewidth=1, edgecolor="w")
+
+    # Use the same x axis limits on all columns and add better labels
+    g.set(xlim=(0, 2), xlabel="Relevance", ylabel="")
+
+    # Use semantically meaningful titles for the columns
+    title = "Relevant Words"
+
+    # Set a different title for each axes
+    ax.set(title=title)
+
+    # Make the grid horizontal instead of vertical
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(True)
+
+    sns.despine(left=True, bottom=True)
     
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
@@ -362,6 +389,12 @@ def search():
                 # Make the matches list refer to the cowboydictionary
                 # so that the html code can reference the results' entries:
                 matches = cowboydictionary
+
+                for dictionary in matches:
+                    value = dictionary["text"]
+                    dataset = plotting_data(value)
+                    plot = plotting(dataset)
+
             except IndexError:
                 matches.append("Your query \"{:s}\" didn't match any documents.".format(r_query))
         else:
@@ -369,6 +402,11 @@ def search():
                 results = relevance_songs(r_query) # stemmed search comes here later
                 cowboydictionary = results
                 matches = cowboydictionary
+
+                for dictionary in matches:
+                    value = dictionary["text"]
+                    dataset = plotting_data(value)
+                    plot = plotting(dataset)
             except IndexError:
                 matches.append("Your query '{:s}' didn't match any documents.".format(r_query))
                 
@@ -398,6 +436,11 @@ def search():
             results = boolean_songs(b_query, hits_list)
             cowboydictionary = results
             matches = cowboydictionary
+
+            for dictionary in matches:
+                value = dictionary["text"]
+                dataset = plotting_data(value)
+                plot = plotting(dataset)
     
     # Finding out what the final pos set used for TopicRank extraction will be, based on which x_pos variables the url query gave
     if n_pos:
