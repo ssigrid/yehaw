@@ -7,6 +7,7 @@ import pke
 import string
 import math
 import csv
+import pandas as pd
 from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk import word_tokenize
@@ -317,33 +318,34 @@ gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2"
 g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
 
 
-def plotting_data(song):
-    top10 = topic_rank(song)
-    row_list = [["keyword", "score"]]
+def plotting(data):
+    top10 = topic_rank(data)
+    row_list = [["score", "keyword"]]
     for i in top10:
         keyword = i[0]
         score = i[1]
-        line = [keyword, score]
+        line = [score, keyword]
         row_list.append(line)
 
         
     with open("songs.csv", "w", newline='') as file:
-        writer = csv.writer(file, delimiter= '|')
-        writer.writerows(row_list)    
-    return songs.csv
-
-
-def plotting(data):
+        writer = csv.writer(file, delimiter= ',')
+        writer.writerows(row_list)
+    
     import seaborn as sns
     sns.set_theme(style="whitegrid")
+    
+    dataset = pd.read_csv("songs.csv")
 
     # Make the PairGrid
-    g = sns.PairGrid(x_vars=data.columns, y_vars=data.keys, height=10, aspect=.25)
+    g = sns.PairGrid(dataset.sort_values("score", ascending=False),
+                    x_vars=dataset.columns, y_vars=["keyword"],
+                    height=10, aspect=.25)
     
 
     # Draw a dot plot using the stripplot function
     g.map(sns.stripplot, size=10, orient="h", jitter=False,
-        palette="flare_r", linewidth=1, edgecolor="w")
+        palette="crest", linewidth=1, edgecolor="w")
 
     # Use the same x axis limits on all columns and add better labels
     g.set(xlim=(0, 2), xlabel="Relevance", ylabel="")
@@ -352,11 +354,9 @@ def plotting(data):
     title = "Relevant Words"
 
     # Set a different title for each axes
-    ax.set(title=title)
+
 
     # Make the grid horizontal instead of vertical
-    ax.xaxis.grid(False)
-    ax.yaxis.grid(True)
 
     sns.despine(left=True, bottom=True)
     
@@ -413,8 +413,7 @@ def search():
                     for key in dictionary:
                         if key == 'plott':
                             value = dictionary[key]
-                            dataset = plotting_data(value)
-                            plot = plotting(dataset)
+                            plot = plotting(value)
             except IndexError:
                 matches.append("Your query '{:s}' didn't match any documents.".format(r_query))
                 
