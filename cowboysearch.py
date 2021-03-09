@@ -171,7 +171,7 @@ def plotting(query, string, j):
     # Make the PairGrid
     g = sns.PairGrid(dataset.sort_values("score", ascending=False),
                     x_vars=None, y_vars=["keyword"],
-                    height=10, aspect=1)
+                    height=5, aspect=1)
     
 
     # Draw a dot plot using the stripplot function
@@ -179,7 +179,7 @@ def plotting(query, string, j):
         palette="crest", linewidth=1, edgecolor="w")
 
     # Use the same x axis limits on all columns and add better labels
-    g.set(xlim=(0, 0.25), xlabel="Relevance", ylabel="")
+    g.set(xlim=(0), xlabel="Relevance", ylabel="")
 
     for ax in g.axes.flat:
 
@@ -396,6 +396,10 @@ g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
 @app.route('/search')
 def search():
 	
+    #Delete previous plots and .csv files
+    os.system('rm -f static/*_plot.png')
+    os.system('rm -f songs.csv')
+    
     #Get query from URL variable (relevance: r_query, boolean: b_query)
     r_query = request.args.get('r_query')
     b_query = request.args.get('b_query')
