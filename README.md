@@ -64,7 +64,7 @@ Make sure you are in yehaw directory.
 Every time you open the environment, set the following environment variables:
 
 
-Mac - Show flask which file to run, enable development environment to activate interactive debugger and reloader and set the port in which to run the application:
+Mac - Show flask which file to run, enable development environment to activate interactive debugger and reloader, and set the port in which to run the application:
 >export FLASK_APP=cowboysearch.py
 
 >export FLASK_ENV=development
