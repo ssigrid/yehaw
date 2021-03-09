@@ -4,66 +4,71 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
 <title>Search Engine</title>
-
 </head>
-
-    <body>
-        <div>
-        <header><img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
-            <a href="/search">
-			Search from 153 Cowboy Songs</a>
-            <img src="static/pensive_cowboy.png" style="width: 1em" id="rotate"></header>
-        <!--Reload the page with variable "query" in the URL-->
-        <div class="dropdown">
-            <button class="dropbtn">Links</button>
-            <div class="dropdown-content">
-              <a href="https://github.com/ssigrid/yehaw">Our github</a>
-              <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Something important</a>
-              <a href="https://youtu.be/rvrZJ5C_Nwg?t=142">Even more important</a>
-              <a href="https://www.youtube.com/watch?v=R8R-ge3bzsY">No but for real</a>
-            </div>
-          </div>
-        </div>
-        <table>
-            <tr>
-                <form>
-                <td class="inputbar"><input type="text" name="b_query" autofocus>
-                <input type="submit" value="Boolean Search" alt="Boolean Search"></td>
-                </form>
-
-                <form>
-                <td class="inputbar"><input type="text" name="r_query" autofocus>
-                <input type="submit" value="Relevance Search" alt="Relevance Search"></td>
-                </form>
-            </tr>
-            <tr>
-                <td> For boolean search, use word "and", "or", and "not" to separate your search words. </td>
-                <td> For exact match, input your relevance search query in double quotes.
-                For stemming, leave the quotes out. </td>
-            </tr>
-        </table>
+	<body>
+		<div>
+		<header>
+			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
+			<a href="/search">Search from 153 Cowboy Songs</a>
+			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
+		</header>
+		<div class="dropdown">
+			<button class="dropbtn">Links</button>
+			<div class="dropdown-content">
+				<a href="https://github.com/ssigrid/yehaw">Our github</a>
+				<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Something important</a>
+				<a href="https://youtu.be/rvrZJ5C_Nwg?t=142">Even more important</a>
+				<a href="https://www.youtube.com/watch?v=R8R-ge3bzsY">No but for real</a>
+			</div>
+		</div>
+		</div>
 		<table>
-            <tr>
-                <form>
-                <td><input type="checkbox" id="noun" name="noun">
+			<tr>
+				<form>
+					<td>
+						<input type="radio" id="b_query" name="b_query">
+						<label for="b_query">Boolean</label><br>
+
+						<input type="radio" id="r_query" name="r_query">
+						<label for="r_query">Relevance</label><br>
+
+						<input type="checkbox" id="topicrank" name="topicrank">
+						<label for="topicrank">TopicRank</label>
+					</td>
+					<td class="inputbar">
+						<input type="text" id="query" name="query" autofocus>
+						<input type="submit" value="Search" alt="Search">
+					</td>
+				</form>
+			</tr>
+			<tr>
+				<td> For boolean search, use word "and", "or", and "not" to separate your search words. </td>
+				<td> For exact match, input your relevance search query in double quotes.
+				For stemming, leave the quotes out. </td>
+			</tr>
+		</table>
+		<table>
+			<tr>
+				<form>
+				<td><input type="checkbox" id="noun" name="noun">
 				<label for="noun">Noun</label></td>
 				<td><input type="checkbox" id="propn" name="propn">
 				<label for="propn">Proper noun</label></td>
 				<td><input type="checkbox" id="adj" name="adj">
 				<label for="adj">Adjective</label></td>
-				
+
 				<td class="inputbar"><input type="number" name="posnum" min="1" max="153">
-				<input type="submit" value="TopicRank"></td>
-                </form>
-            </tr>
-        </table>
+				<input type="submit" value="IgnoreThis"></td>
+				</form>
+			</tr>
+		</table>
 		{% if matches %}
-        <table class="matchestable">
-            <!--Go through each item in the "matches" variable sent from
-                search() function in the Flask app-->
-            {% for item in matches %}
-                {% if item.name is defined %}
-                    {% if item.score is defined %}
+		<!--Reload the page with variable "query" in the URL-->
+		<table class="matchestable">
+			<!--Go through each item in the "matches" variable sent from search() function in the Flask app-->
+			{% for item in matches %}
+				{% if item.name is defined %}
+					{% if item.score is defined %}
 						<tr>
 							<td>{{ item["rank"] }}</td>
 							<td class="articlename">{{ item["name"] }}</td>
@@ -71,64 +76,64 @@
 							<td class="resultentry">
 								{% if item.title is defined %}
 									{{ item["title"] }}
-								{% endif %}
-								{% if item.title is undefined %}
+								{% elif item.title is undefined %}
 									<div class="entrybox">
 									{% for entry in item.text %}
 										{% if loop.first %}
 											<div class="firstentry">{{ entry }}<span class="hovertoview"><br>... [hover to see the rest]</span></div>
-										{% endif %}
-										{% if not loop.first %}
+										{% elif not loop.first %}
 											<div class="hiddenentry">{{ entry }}</div>
 										{% endif %}
 									{% endfor %}
+									{% if item["plotimg"] %}
+										<div class="hiddenentry"><br><img src="./static/{{ item['plotimg'] }}" style="width: 100%"></div>
+									{% endif %}
 									</div>
 								{% endif %}
 							</td>
 						</tr>
-                    {% endif %}
-                    {% if item.score is undefined %}
-                    <tr>
-                        <td> {{ item["rank"] }}</td>
-                        <td class="articlename">{{ item["name"] }}</td>
-                        <td class="resultentry">
+					{% elif item.score is undefined %}
+					<tr>
+						<td> {{ item["rank"] }}</td>
+						<td class="articlename">{{ item["name"] }}</td>
+						<td class="resultentry">
 							{% if item.title is defined %}
 								{{ item["title"] }}
-							{% endif %}
-							{% if item.title is undefined %}
-									<div class="entrybox">
+							{% elif item.title is undefined %}
+								<div class="entrybox">
 									{% for entry in item.text %}
 										{% if loop.first %}
 											<div class="firstentry">{{ entry }}<span class="hovertoview"><br>... [hover to see the rest]</span></div>
-										{% endif %}
-										{% if not loop.first %}
+										{% elif not loop.first %}
 											<div class="hiddenentry">{{ entry }}</div>
 										{% endif %}
 									{% endfor %}
-									</div>
-								{% endif %}
+									{% if item["plotimg"] %}
+										<div class="hiddenentry"><br><img src="./static/{{ item['plotimg'] }}" style="width: 100%"></div>
+									{% endif %}
+								</div>
+							{% endif %}
 						</td>
-                    </tr>
-                    {% endif %}
-                {% endif %}
-                {% if item.name is undefined %}
-                    <tr>
-                        <td><img src="static/cowboy_crying.png" style="width: 3em; margin-right: 15px" id="rotate">{{ item }}</td>
-                    </tr>
-                {% endif %}
-            <!--End for loop-->
-            {% endfor %}
-        </table>
+					</tr>
+					{% endif %}
+				{% elif item.name is undefined %}
+					<tr>
+						<td><img src="static/cowboy_crying.png" style="width: 3em; margin-right: 15px" id="rotate">{{ item }}</td>
+					</tr>
+				{% endif %}
+			<!--End for loop-->
+			{% endfor %}
+		</table>
 		{% endif %}
-		
-        <footer>
-            <span>Background image by <a href="https://pixabay.com/users/devanath-1785462/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
-                Devanath</a> from <a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
-                    Pixabay</a>
+
+		<footer>
+			<span>Background image by <a href="https://pixabay.com/users/devanath-1785462/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
+				Devanath</a> from <a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2389830">
+					Pixabay</a>
 				<br>Crying cowboy icon by <a href="https://www.flaticon.com/authors/pixel-perfect" title="Pixel perfect">
 					Pixel perfect</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
-                <br> Songs from the book <i>Cowboy Songs and Other Frontier Ballads</i> from <a href="https://www.gutenberg.org/ebooks/21300" >www.gutenberg.com</a>
-            </span>
-        </footer>
-    </body>
+				<br>Songs from the book <i>Cowboy Songs and Other Frontier Ballads</i> from <a href="https://www.gutenberg.org/ebooks/21300">www.gutenberg.com</a>
+			</span>
+		</footer>
+	</body>
 </html>

@@ -130,23 +130,7 @@ def topic_rank(songnumber):
     # Keyphrases come in tuples (iirc) where the first one is the keyword/phrase and the second one is its score
     keyphrases = extractor.get_n_best(n=10)
     
-    # Make the keyphrase search results into dictionary entries
-    # where name=keyword/keyphrase, title=TBA, score=score, rank=number of song in the results,
-    # and append them into the results list:
-    #if len(keyphrases) == 0:
-        # In the rare case where there are no results, no dictionary entry is created:
-        #results.append("No hits.")
-    #else:
-        #i = 0
-        #resultsitem = {'name': "Keyword(s)", 'title': "Song number {:d} is called {:s}.".format(songnumber+1, get_song_name(songnumber)), 'score': "Score", 'rank': "#"}
-        #results.append(resultsitem)
-        #for hit in keyphrases:
-           # roundedscore = "{:.4f}".format(hit[1])
-           # resultsitem = {'name': hit[0], 'title': "This is where we would put an example of the keyword in the song.", 'score': roundedscore, 'rank': i+1}
-            #results.append(resultsitem)
-            #i = i+1
-    
-    return keyphrases
+    return keyphrases   # return the keyphrases and their scores as a list of tuples
 
 # PLOTTING FUNCTION:
 
@@ -199,7 +183,7 @@ def plotting(query, string, j):
 
 # RELEVANCE SEARCH FUNCTION:
 
-def relevance_songs(query):
+def relevance_songs(query, t_rank):
 
     """ Relevance search (non-stem, non-n-gram)
     """
@@ -236,9 +220,12 @@ def relevance_songs(query):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            plotlines = songs_nonewlines[doc_idx]
-            pltpath = plotting(query, plotlines, j)
-            j = j + 1
+            if t_rank == True:
+                plotlines = songs_nonewlines[doc_idx]
+                pltpath = plotting(query, plotlines, j)
+                j = j + 1
+            else:
+                pltpath = ""
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
     elif len(ranked_scores_and_doc_ids) <= 10:
@@ -253,9 +240,12 @@ def relevance_songs(query):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            plotlines = songs_nonewlines[doc_idx]
-            pltpath = plotting(query, plotlines, j)
-            j = j + 1
+            if t_rank == True:
+                plotlines = songs_nonewlines[doc_idx]
+                pltpath = plotting(query, plotlines, j)
+                j = j + 1
+            else:
+                pltpath = ""
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
     else:
@@ -271,9 +261,12 @@ def relevance_songs(query):
                 newlines = newlines.split("\n")
                 if len(newlines[0]) == 0:
                     newlines = newlines[1:] # no empty line at the beginning
-                plotlines = songs_nonewlines[doc_idx]
-                pltpath = plotting(query, plotlines, j)
-                j = j + 1
+                if t_rank == True:
+                    plotlines = songs_nonewlines[doc_idx]
+                    pltpath = plotting(query, plotlines, j)
+                    j = j + 1
+                else:
+                    pltpath = ""
                 resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
                 results.append(resultsitem)
           
@@ -299,7 +292,7 @@ def rewrite_token(t):
 def rewrite_query(query): # rewrite every token in the query
     return " ".join(rewrite_token(t) for t in query.split()) # splits the query into words and returns the rewritten, rejoined query
 
-def boolean_songs(b_query, hits_list):
+def boolean_songs(b_query, hits_list, t_rank):
     
     """ Boolean search (exact match, non-n-gram)
     """
@@ -325,9 +318,12 @@ def boolean_songs(b_query, hits_list):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            plotlines = songs_nonewlines[doc_idx]
-            pltpath = plotting(b_query, plotlines, j)
-            j = j + 1
+            if t_rank == True:
+                plotlines = songs_nonewlines[doc_idx]
+                pltpath = plotting(b_query, plotlines, j)
+                j = j + 1
+            else:
+                pltpath = ""
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
             i = i+1
@@ -342,9 +338,12 @@ def boolean_songs(b_query, hits_list):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            plotlines = songs_nonewlines[doc_idx]
-            pltpath = plotting(b_query, plotlines, j)
-            j = j + 1
+            if t_rank == True:
+                plotlines = songs_nonewlines[doc_idx]
+                pltpath = plotting(b_query, plotlines, j)
+                j = j + 1
+            else:
+                pltpath = ""
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
             i = i+1
@@ -359,9 +358,12 @@ def boolean_songs(b_query, hits_list):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            plotlines = songs_nonewlines[doc_idx]
-            pltpath = plotting(b_query, plotlines, j)
-            j = j + 1
+            if t_rank == True:
+                plotlines = songs_nonewlines[doc_idx]
+                pltpath = plotting(b_query, plotlines, j)
+                j = j + 1
+            else:
+                pltpath = ""
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
             i = i+1
@@ -396,13 +398,87 @@ g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
 @app.route('/search')
 def search():
 	
-    #Delete previous plots and .csv files
+    # Delete previous plots and .csv files
     os.system('rm -f static/*_plot.png')
     os.system('rm -f songs.csv')
     
-    #Get query from URL variable (relevance: r_query, boolean: b_query)
+    # Get query from URL variable
+    # Actual query: query, relevance button: r_query, boolean button: b_query
+    query = request.args.get('query')
     r_query = request.args.get('r_query')
     b_query = request.args.get('b_query')
+    
+    #Get TopicRank from URL variable
+    t_rank = request.args.get('topicrank')
+    
+    # If TopicRank checkbox has been checked, t_rank is True
+    if t_rank:
+        t_rank = True
+    else:
+        t_rank = False
+
+    #Initialize list of matches
+    matches = []
+    
+    # If query exists
+    if query:
+        # If both or neither the relevance or boolean searches has been selected,
+        # append error message to the matches list
+        if not r_query and not b_query or r_query and b_query:
+            matches.append("Please check either boolean or relevance search.")
+        # If relevance search query exists
+        elif r_query:
+            # Search non-stemmed or stemmed articles based on the query's use of quotes
+            # Receive the results as a dictionary
+            if re.search(r'^".*"$', query):
+                try:
+                    query = re.sub(r'^"(.*)"$', r'\1', query)
+                    results = relevance_songs(query, t_rank)
+                    # Make the cowboydictionary refer to the results dictionary
+                    # so that the html code can reference the results' entries:
+                    cowboydictionary = results
+                    # Make the matches list refer to the cowboydictionary
+                    # so that the html code can reference the results' entries:
+                    matches = cowboydictionary
+                except IndexError:
+                    matches.append("Your query \"{:s}\" didn't match any documents.".format(query))
+            else:
+                try:
+                    results = relevance_songs(query, t_rank) # stemmed search comes here later
+                    cowboydictionary = results
+                    matches = cowboydictionary
+                except IndexError:
+                    matches.append("Your query '{:s}' didn't match any documents.".format(query))
+                
+        # If boolean search query exists
+        elif b_query:
+        
+            #Initialize list of match results
+            results = []
+        
+            rewritten_query = rewrite_query(query)
+            sparse_td_matrix = sparse_matrix.T.tocsr()
+        
+            try:
+                hits_matrix = eval(rewritten_query)
+            # If there's a syntax error, append it into the matches list and
+            # immediately return that list for the html page so its if statement works properly
+            except SyntaxError:
+                matches.append("SyntaxError: If your search consists of multiple words, remember to separate them with 'and' or 'or'. Also make sure you write 'and/or not' instead of just 'not'.")
+                return render_template('index.html', matches=matches)
+            
+            hits_list = list(hits_matrix.nonzero()[1])
+        
+            if len(hits_list) == 0:
+                matches.append("Your query '{:s}' didn't match any songs.".format(query))     # no dictionary to make the html if statement work properly
+                return render_template('index.html', matches=matches)
+            else:
+                results = boolean_songs(query, hits_list, t_rank)
+                cowboydictionary = results
+                matches = cowboydictionary
+    
+    # NOT AT USE ATM:
+    # -------------------------------
     
     #Get part-of-speech from URL variable
     n_pos = request.args.get('noun')
@@ -411,60 +487,6 @@ def search():
     
     #Get index number of the song for TopicRank analysis from URL variable
     posnum = request.args.get('posnum')
-
-    #Initialize list of matches
-    matches = []
-    
-    #If relevance search query exists
-    if r_query:
-        # Search non-stemmed or stemmed articles based on the query's use of quotes
-        # Receive the results as a dictionary
-        if re.search(r'^".*"$', r_query):
-            try:
-                r_query = re.sub(r'^"(.*)"$', r'\1', r_query)
-                results = relevance_songs(r_query)
-                # Make the cowboydictionary refer to the results dictionary
-                # so that the html code can reference the results' entries:
-                cowboydictionary = results
-                # Make the matches list refer to the cowboydictionary
-                # so that the html code can reference the results' entries:
-                matches = cowboydictionary
-            except IndexError:
-                matches.append("Your query \"{:s}\" didn't match any documents.".format(r_query))
-        else:
-            try:
-                results = relevance_songs(r_query) # stemmed search comes here later
-                cowboydictionary = results
-                matches = cowboydictionary
-            except IndexError:
-                matches.append("Your query '{:s}' didn't match any documents.".format(r_query))
-                
-    #If boolean search query exists
-    if b_query:
-        
-        #Initialize list of match results
-        results = []
-        
-        query = rewrite_query(b_query)
-        sparse_td_matrix = sparse_matrix.T.tocsr()
-        
-        try:
-            hits_matrix = eval(query)
-        # If there's a syntax error, append it into the matches list and
-        # immediately return that list for the html page so its if statement works properly
-        except SyntaxError:
-            matches.append("SyntaxError: If your search consists of multiple words, remember to separate them with 'and' or 'or'. Also make sure you write 'and/or not' instead of just 'not'.")
-            return render_template('index.html', matches=matches)
-            
-        hits_list = list(hits_matrix.nonzero()[1])
-        
-        if len(hits_list) == 0:
-            matches.append("Your query '{:s}' didn't match any songs.".format(b_query))     # no dictionary to make the html if statement work properly
-            return render_template('index.html', matches=matches)
-        else:
-            results = boolean_songs(b_query, hits_list)
-            cowboydictionary = results
-            matches = cowboydictionary
     
     # Finding out what the final pos set used for TopicRank extraction will be, based on which x_pos variables the url query gave
     if n_pos:
@@ -501,6 +523,8 @@ def search():
             matches = cowboydictionary
         else:
             matches.append("Please check one of the boxes.")
+
+    # -------------------------------
 
     #Render index.html with matches variable
     return render_template('index.html', matches=matches)
