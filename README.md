@@ -28,12 +28,19 @@ NOTE: If Windows command line can't run the command, move into the Scripts direc
 
 You need to have python3 in order for the code to work. Install also Flask, nltk, sklearn, seaborn, spacy, bs4, pandas and numpy using pip3, in this way:
 >pip3 install Flask
+
 >pip3 install nltk
+
 >pip3 install sklearn
+
 >pip3 install seaborn
+
 >pip3 install spacy
+
 >pip3 install bs4
+
 >pip3 install pandas
+
 >pip3 install numpy
 
 
