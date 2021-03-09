@@ -26,7 +26,7 @@ NOTE: If Windows command line can't run the command, move into the Scripts direc
 >activate
 
 
-You need to have python3 in order for the code to work. Install also Flask, nltk, sklearn, seaborn, spacy, bs4, panda, and numpy using pip3, in this way:
+You need to have python3 in order for the code to work. Install also Flask, nltk, sklearn, seaborn, spacy, bs4, pandas, and numpy using pip3, in this way:
 >pip3 install \<example\>
 
 
