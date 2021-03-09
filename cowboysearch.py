@@ -7,7 +7,9 @@ import pke
 import string
 import math
 import csv
+import os
 import pandas as pd
+import seaborn as sns
 from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk import word_tokenize
@@ -17,6 +19,8 @@ from bs4 import BeautifulSoup
 
 #Initialize Flask instance
 app = Flask(__name__)
+
+# BOOK EDITING FUNCTIONS:
 
 def list_newlines(file):
 
@@ -89,6 +93,112 @@ def get_song_name(i):
     
     return songname     # returns the name of the song as string
 
+# TOPIC RANK FUNCTION:
+
+def topic_rank(songnumber):
+    
+    """ Extracts words that are most important to the text
+        based on the given part-of-speech variable and the index number of the song
+    """
+    
+    # Initialize list of results
+    results = []
+
+    # Find the correct song to analyze from the list where every song is one item without newlines
+    #singlesong = songs_nonewlines[songnumber]
+    
+    # Create a TopicRank extractor
+    extractor = pke.unsupervised.TopicRank()
+    
+    # Load the content of the song
+    extractor.load_document(input=songnumber, language='en', normalization=None)
+    
+    # Create a list of stopwords and select candidates
+    # based on what checkboxes the search page user selected (e.g. 'PROPN')
+    # TopicRank selects the longest sequences of the given parts-of-speech as candidates
+    # and ignores punctuation marks or stopwords as candidates
+    stoplist = list(string.punctuation)
+    stoplist += ['-lrb-', '-rrb-', '-lcb-', '-rcb-', '-lsb-', '-rsb-']
+    stoplist += stopwords.words('english')
+    extractor.candidate_selection(pos=None, stoplist=stoplist)
+    
+    # Build topics by grouping candidates with HAC (average linkage, threshold of 1/4 of shared stems)
+    # Weight the topics using random walk, and select the first occuring candidate from each topic
+    extractor.candidate_weighting(threshold=0.74, method='average')
+    
+    # Get the 10-highest scored candidates as keyphrases
+    # Keyphrases come in tuples (iirc) where the first one is the keyword/phrase and the second one is its score
+    keyphrases = extractor.get_n_best(n=10)
+    
+    # Make the keyphrase search results into dictionary entries
+    # where name=keyword/keyphrase, title=TBA, score=score, rank=number of song in the results,
+    # and append them into the results list:
+    #if len(keyphrases) == 0:
+        # In the rare case where there are no results, no dictionary entry is created:
+        #results.append("No hits.")
+    #else:
+        #i = 0
+        #resultsitem = {'name': "Keyword(s)", 'title': "Song number {:d} is called {:s}.".format(songnumber+1, get_song_name(songnumber)), 'score': "Score", 'rank': "#"}
+        #results.append(resultsitem)
+        #for hit in keyphrases:
+           # roundedscore = "{:.4f}".format(hit[1])
+           # resultsitem = {'name': hit[0], 'title': "This is where we would put an example of the keyword in the song.", 'score': roundedscore, 'rank': i+1}
+            #results.append(resultsitem)
+            #i = i+1
+    
+    return keyphrases
+
+# PLOTTING FUNCTION:
+
+def plotting(query, string, j):
+    
+    top10 = topic_rank(string)
+    row_list = [["score", "keyword"]]
+    for t in top10:
+        keyword = t[0]
+        score = t[1]
+        line = [score, keyword]
+        row_list.append(line)
+        
+    with open("songs.csv", "w", newline='') as file:
+        writer = csv.writer(file, delimiter= ',')
+        writer.writerows(row_list)
+
+    sns.set_theme(style="whitegrid")
+    
+    dataset = pd.read_csv("songs.csv")
+
+    # Make the PairGrid
+    g = sns.PairGrid(dataset.sort_values("score", ascending=False),
+                    x_vars=None, y_vars=["keyword"],
+                    height=10, aspect=1)
+    
+
+    # Draw a dot plot using the stripplot function
+    g.map(sns.stripplot, size=10, orient="h", jitter=False,
+        palette="crest", linewidth=1, edgecolor="w")
+
+    # Use the same x axis limits on all columns and add better labels
+    g.set(xlim=(0, 0.25), xlabel="Relevance", ylabel="")
+
+    for ax in g.axes.flat:
+
+    # Set a different title for each axes
+        #ax.set(title=title)
+
+    # Make the grid horizontal instead of vertical
+        ax.xaxis.grid(False)
+        ax.yaxis.grid(True)
+
+    sns.despine(left=True, bottom=True)
+    new_j = str(j)
+    pltpath = f'{query}_{new_j}_plot.png'
+    g.savefig(f'static/{pltpath}')
+    
+    return pltpath
+
+# RELEVANCE SEARCH FUNCTION:
+
 def relevance_songs(query):
 
     """ Relevance search (non-stem, non-n-gram)
@@ -117,34 +227,41 @@ def relevance_songs(query):
     if len(ranked_scores_and_doc_ids) == 1:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched one song. Here are its lyrics:".format(query), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
+        j = 1
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             roundedscore = "{:.4f}".format(score)   # we're only printing four decimals now
             newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
-            plotlines = songs_nonewlines[doc_idx]
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plott': plotlines}
+            plotlines = songs_nonewlines[doc_idx]
+            pltpath = plotting(query, plotlines, j)
+            j = j + 1
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
     elif len(ranked_scores_and_doc_ids) <= 10:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are their lyrics in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
+        j = 1
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             roundedscore = "{:.4f}".format(score)
             newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
             newlines = newlines.split("\n")
-            plotlines = songs_nonewlines[doc_idx]
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plott': plotlines}
+            plotlines = songs_nonewlines[doc_idx]
+            pltpath = plotting(query, plotlines, j)
+            j = j + 1
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
     else:
         resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are the lyrics of the 10 songs your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
+        j = 1
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
             if 0 <= i <= 9:
                 roundedscore = "{:.4f}".format(score)
@@ -152,10 +269,12 @@ def relevance_songs(query):
                 newlines = re.sub(r'\n\n\n', r'\n', newlines)
                 newlines = re.sub(r'\n\n\n', r'\n', newlines)
                 newlines = newlines.split("\n")
-                plotlines = songs_nonewlines[doc_idx]
                 if len(newlines[0]) == 0:
                     newlines = newlines[1:] # no empty line at the beginning
-                resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plott': plotlines}
+                plotlines = songs_nonewlines[doc_idx]
+                pltpath = plotting(query, plotlines, j)
+                j = j + 1
+                resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
                 results.append(resultsitem)
           
     return results      # return dictionary of results
@@ -198,6 +317,7 @@ def boolean_songs(b_query, hits_list):
     if len(hits_list) == 1:
         resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched one song. Here are its lyrics:".format(b_query), 'rank': "#"}
         results.append(resultsitem)
+        j = 1
         for doc_idx in hits_list:
             newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
@@ -205,12 +325,16 @@ def boolean_songs(b_query, hits_list):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1}
+            plotlines = songs_nonewlines[doc_idx]
+            pltpath = plotting(b_query, plotlines, j)
+            j = j + 1
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
             i = i+1
     elif len(hits_list) <= 10:
         resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched {:d} songs. Here are their lyrics:".format(b_query, len(hits_list)), 'rank': "#"}
         results.append(resultsitem)
+        j = 1
         for doc_idx in hits_list:
             newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
@@ -218,12 +342,16 @@ def boolean_songs(b_query, hits_list):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1}
+            plotlines = songs_nonewlines[doc_idx]
+            pltpath = plotting(b_query, plotlines, j)
+            j = j + 1
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
             i = i+1
     else:
         resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched {:d} songs. Here are the lyrics of the first ten songs:".format(b_query, len(hits_list)), 'rank': "#"}
         results.append(resultsitem)
+        j = 1
         for doc_idx in hits_list[0:10]:
             newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)
@@ -231,69 +359,14 @@ def boolean_songs(b_query, hits_list):
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1}
+            plotlines = songs_nonewlines[doc_idx]
+            pltpath = plotting(b_query, plotlines, j)
+            j = j + 1
+            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
             i = i+1
 
     return results      # return dictionary of results
-
-# TOPIC RANK FUNCTION:
-
-def topic_rank(songnumber):
-    
-    """ Extracts words that are most important to the text
-        based on the given part-of-speech variable and the index number of the song
-    """
-    
-    # Initialize list of results
-    results = []
-
-    # Find the correct song to analyze from the list where every song is one item without newlines
-    #singlesong = songs_nonewlines[songnumber]
-    
-    # Create a TopicRank extractor
-    extractor = pke.unsupervised.TopicRank()
-    
-    # Load the content of the song
-    extractor.load_document(input=songnumber, language='en', normalization=None)
-    
-    # Create a list of stopwords and select candidates
-    # based on what checkboxes the search page user selected (e.g. 'PROPN')
-    # TopicRank selects the longest sequences of the given parts-of-speech as candidates
-    # and ignores punctuation marks or stopwords as candidates
-    stoplist = list(string.punctuation)
-    stoplist += ['-lrb-', '-rrb-', '-lcb-', '-rcb-', '-lsb-', '-rsb-']
-    stoplist += stopwords.words('english')
-    extractor.candidate_selection(pos=None, stoplist=stoplist)
-    
-    # Build topics by grouping candidates with HAC (average linkage, threshold of 1/4 of shared stems)
-    # Weight the topics using random walk, and select the first occuring candidate from each topic
-    extractor.candidate_weighting(threshold=0.74, method='average')
-    
-    # Get the 10-highest scored candidates as keyphrases
-    # Keyphrases come in tuples (iirc) where the first one is the keyword/phrase and the second one is its score
-    keyphrases = extractor.get_n_best(n=10)
-    
-    # This will be used to build a graph out of the results at some point:
-    # build_topic_graph()
-    
-    # Make the keyphrase search results into dictionary entries
-    # where name=keyword/keyphrase, title=TBA, score=score, rank=number of song in the results,
-    # and append them into the results list:
-    #if len(keyphrases) == 0:
-        # In the rare case where there are no results, no dictionary entry is created:
-        #results.append("No hits.")
-    #else:
-        #i = 0
-        #resultsitem = {'name': "Keyword(s)", 'title': "Song number {:d} is called {:s}.".format(songnumber+1, get_song_name(songnumber)), 'score': "Score", 'rank': "#"}
-        #results.append(resultsitem)
-        #for hit in keyphrases:
-           # roundedscore = "{:.4f}".format(hit[1])
-           # resultsitem = {'name': hit[0], 'title': "This is where we would put an example of the keyword in the song.", 'score': roundedscore, 'rank': i+1}
-            #results.append(resultsitem)
-            #i = i+1
-    
-    return keyphrases
 
 # SOURCE FILE GETTING HANDLED:
 
@@ -316,49 +389,6 @@ gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2"
 g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
 gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
 g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
-
-
-def plotting(data):
-    top10 = topic_rank(data)
-    row_list = [["score", "keyword"]]
-    for i in top10:
-        keyword = i[0]
-        score = i[1]
-        line = [score, keyword]
-        row_list.append(line)
-
-        
-    with open("songs.csv", "w", newline='') as file:
-        writer = csv.writer(file, delimiter= ',')
-        writer.writerows(row_list)
-    
-    import seaborn as sns
-    sns.set_theme(style="whitegrid")
-    
-    dataset = pd.read_csv("songs.csv")
-
-    # Make the PairGrid
-    g = sns.PairGrid(dataset.sort_values("score", ascending=False),
-                    x_vars=dataset.columns, y_vars=["keyword"],
-                    height=10, aspect=.25)
-    
-
-    # Draw a dot plot using the stripplot function
-    g.map(sns.stripplot, size=10, orient="h", jitter=False,
-        palette="crest", linewidth=1, edgecolor="w")
-
-    # Use the same x axis limits on all columns and add better labels
-    g.set(xlim=(0, 2), xlabel="Relevance", ylabel="")
-
-    # Use semantically meaningful titles for the columns
-    title = "Relevant Words"
-
-    # Set a different title for each axes
-
-
-    # Make the grid horizontal instead of vertical
-
-    sns.despine(left=True, bottom=True)
     
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
@@ -395,12 +425,6 @@ def search():
                 # Make the matches list refer to the cowboydictionary
                 # so that the html code can reference the results' entries:
                 matches = cowboydictionary
-
-                for dictionary in matches:
-                    value = dictionary["text"]
-                    dataset = plotting_data(value)
-                    plot = plotting(dataset)
-
             except IndexError:
                 matches.append("Your query \"{:s}\" didn't match any documents.".format(r_query))
         else:
@@ -408,12 +432,6 @@ def search():
                 results = relevance_songs(r_query) # stemmed search comes here later
                 cowboydictionary = results
                 matches = cowboydictionary
-
-                for dictionary in matches:
-                    for key in dictionary:
-                        if key == 'plott':
-                            value = dictionary[key]
-                            plot = plotting(value)
             except IndexError:
                 matches.append("Your query '{:s}' didn't match any documents.".format(r_query))
                 
@@ -443,11 +461,6 @@ def search():
             results = boolean_songs(b_query, hits_list)
             cowboydictionary = results
             matches = cowboydictionary
-
-            for dictionary in matches:
-                value = dictionary["text"]
-                dataset = plotting_data(value)
-                plot = plotting(dataset)
     
     # Finding out what the final pos set used for TopicRank extraction will be, based on which x_pos variables the url query gave
     if n_pos:
