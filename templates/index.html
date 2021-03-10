@@ -6,12 +6,6 @@
 <title>Search Engine</title>
 </head>
 	<body>
-		<div>
-		<header>
-			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
-			<a href="/search">Search from 153 Cowboy Songs</a>
-			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
-		</header>
 		<div class="dropdown">
 			<button class="dropbtn">Links</button>
 			<div class="dropdown-content">
@@ -21,7 +15,13 @@
 				<a href="https://www.youtube.com/watch?v=R8R-ge3bzsY">The Creators</a>
 			</div>
 		</div>
-		</div>
+		
+		<div class="content_div">
+		<header>
+			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
+			<a href="/search">Search from 153 Cowboy Songs</a>
+			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
+		</header>
 		<table>
 			<tr>
 				<form>
@@ -42,20 +42,20 @@
 			</tr>
 			<tr>
 				<td>
-					<p>Welcome to Team Yehaw's search engine!</p>
+					<span>Welcome to Team Yehaw's search engine!</span>
 					<p>If you pick relevance search, input your query in double quotes for exact matching
 					or leave the quotes out if you want to search for matching word stems.
 					Using an asterisk(*) in a (quote-less) search matches the asterisk to any character(s),
 					for example 'do*' matches to do, down, and doctrines.</p>
 					<p>For Boolean search, use the words "and", "or", and "not" to separate your search words.</p>
-					<p>Clicking 'Show Keywords' lets you see the ten most important words of every result drawn on a beautiful plot :)</p>
+					<p>Clicking 'Show Keywords' lets you see the ten most important words of your search results drawn on a beautiful plot :)</p>
 				</td>
 			</tr>
 		</table>
 		
 		{% if matches %}
 		<!--Reload the page with variable "query" in the URL-->
-		<table class="matchestable">
+		<table>
 			<!--Go through each item in the "matches" variable sent from search() function in the Flask app-->
 			{% for item in matches %}
 				{% if item.name is defined %}
@@ -100,5 +100,6 @@
 				<br>Songs from the book <i>Cowboy Songs and Other Frontier Ballads</i> from <a href="https://www.gutenberg.org/ebooks/21300">www.gutenberg.com</a>
 			</span>
 		</footer>
+		</div>
 	</body>
 </html>
