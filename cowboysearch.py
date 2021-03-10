@@ -8,6 +8,7 @@ import string
 import math
 import csv
 import os
+import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mlp
@@ -18,6 +19,7 @@ from nltk import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from bs4 import BeautifulSoup
+from sys import platform
 
 #Initialize Flask instance
 app = Flask(__name__)
@@ -171,6 +173,10 @@ def plotting(query, plotlines, j):
         ax.yaxis.grid(True)
 
     sns.despine(left=True, bottom=True)
+    if "*" in query:
+        query = query.replace("*", "")
+    if " " in query:
+        query = query.replace(" ", "_")
     new_j = str(j)
     pltpath = f'{query}_{new_j}_plot.png'
     g.savefig(f'static/{pltpath}')
@@ -188,25 +194,22 @@ def relevance_songs(query, t_rank):
     results = []
 
     if "*" in query:
+        # Vectorize query string
         wildcard_vec = wildcard_songs(query)
         if wildcard_vec == None:
             results.append("Your query \"{:s}\" didn't match any documents.".format(query))
             return results
         else:
+            # Cosine similarity
             hits = np.dot(wildcard_vec, g3_matrix)
+            # Rank hits
             ranked_scores_and_doc_ids = \
             sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     else:
         gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
         g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
-        
-        # Vectorize query string
         query_vec = gv1.transform([ query ]).tocsc()
-
-        # Cosine similarity
         hits = np.dot(query_vec, g_matrix)
-
-        # Rank hits
         ranked_scores_and_doc_ids = \
         sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     
@@ -313,7 +316,10 @@ def rewrite_token(t):
     
     cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
     sparse_matrix = cv.fit_transform(songs_nonewlines)
+    dense_matrix = sparse_matrix.todense()
+    td_matrix = dense_matrix.T
     terms = cv.get_feature_names()
+    t2i = cv.vocabulary_
     
     d = {"and": "&", "AND": "&",
      "or": "|", "OR": "|",
@@ -430,8 +436,20 @@ g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
 def search():
 	
     # Delete previous plots and .csv files
-    os.system('rm -f static/*_plot.png')
-    os.system('rm -f songs.csv')
+    if platform == "win32":
+        try:
+            imglist = glob.glob('static/*_plot.png')
+            for imgpath in imglist:
+                os.remove(imgpath)
+            os.remove('songs.csv')
+        except:
+            pass
+    else:
+        try:
+            os.system('rm -f static/*_plot.png')
+            os.system('rm -f songs.csv')
+        except:
+            pass
     
     # Get query from URL variable
     # Actual query: query, relevance button: r_query, boolean button: b_query
