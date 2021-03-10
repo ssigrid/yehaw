@@ -9,6 +9,8 @@ import math
 import csv
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib as mlp
 import seaborn as sns
 from collections import defaultdict
 from nltk.corpus import stopwords
@@ -128,6 +130,8 @@ def topic_rank(plotlines):
 def plotting(query, plotlines, j):
     """ creates a cvs file from the ten keywords and keyword scores of the song j,
         returns a seaborn striplot """
+    mlp.use("Agg")
+
 
     top10 = topic_rank(plotlines)
     row_list = [["score", "keyword"]]
@@ -304,10 +308,7 @@ def rewrite_token(t):
     
     cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
     sparse_matrix = cv.fit_transform(songs_nonewlines)
-    dense_matrix = sparse_matrix.todense()
-    td_matrix = dense_matrix.T
     terms = cv.get_feature_names()
-    t2i = cv.vocabulary_
     
     d = {"and": "&", "AND": "&",
      "or": "|", "OR": "|",
@@ -503,3 +504,4 @@ def search():
 
     #Render index.html with matches variable
     return render_template('index.html', matches=matches)
+
