@@ -70,6 +70,34 @@ def list_titles(songfile):
     openfile.close()
 
     return songlist     # returns a list where every song is an item, name included but without newline characters
+    
+# STEMMING FUNCTIONS:
+
+def stemmer(stringoftext):
+    from nltk.stem import PorterStemmer
+    from nltk.tokenize import sent_tokenize, word_tokenize
+    porter = PorterStemmer()
+
+    token_words = word_tokenize(stringoftext)
+    stem_sentence = []
+    for word in token_words:
+        stem_sentence.append(porter.stem(word))
+        stem_sentence.append(" ")
+    return "".join(stem_sentence)
+
+def stem_list(listofsongs):
+
+    """ Runs every line on the list through a stemmer
+        and writes the stemmed line in a new list
+    """
+    
+    stemlist = []
+    for song in listofsongs:
+        stemlist.append(stemmer(song))
+
+    return stemlist     # returns a list where every song is an item, name included but without newline characters, text has been stemmed
+
+# GET THE SONG NAME FOR RESULTS:
 
 def get_song_name(i):
 
@@ -173,13 +201,29 @@ def plotting(query, plotlines, j):
         ax.yaxis.grid(True)
 
     sns.despine(left=True, bottom=True)
+    
+    # Rewrite symbols that cannot be in image url
     if "*" in query:
         query = query.replace("*", "")
-    if " " in query:
-        query = query.replace(" ", "_")
+    if '"' in query:
+        query = query.replace('"', '')
+    if " " in query:                    # technically space is not an unacceotable symbol
+        query = query.replace(" ", "_") # but spaces in file names can sometimes cause problems
+    
+    # Make j into string so it can be used in image url
     new_j = str(j)
+    
+    # Image url
     pltpath = f'{query}_{new_j}_plot.png'
-    g.savefig(f'static/{pltpath}')
+    
+    # Save the figure
+    try:
+        g.savefig(f'static/{pltpath}')
+        
+    # OSError happens if there is an unacceptable symbol in the url,
+    # in which case the pltpath leads to a crying cowboy
+    except OSError:
+        pltpath = "cowboy_crying.png"
     
     return pltpath
 
@@ -205,11 +249,20 @@ def relevance_songs(query, t_rank):
             # Rank hits
             ranked_scores_and_doc_ids = \
             sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
-    else:
+    elif re.match(r'^"(.*)"$', query):
+        query_noquotes = re.sub(r'^"(.*)"$', r'\1', query)
         gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
         g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
-        query_vec = gv1.transform([ query ]).tocsc()
+        query_vec = gv1.transform([ query_noquotes ]).tocsc()
         hits = np.dot(query_vec, g_matrix)
+        ranked_scores_and_doc_ids = \
+        sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
+    else:
+        query_stem = stemmer(query)
+        gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
+        g_matrix_stem = gv2.fit_transform(songs_stemmed).T.tocsr()
+        query_vec = gv2.transform([ query_stem ]).tocsc()
+        hits = np.dot(query_vec, g_matrix_stem)
         ranked_scores_and_doc_ids = \
         sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     
@@ -221,7 +274,7 @@ def relevance_songs(query, t_rank):
     # The first entry is different and has 'title' as a key instead of 'text' so it gets printed properly on the html page,
     # what exactly the title key says depends on the length of the ranked hit (i.e. how many hits the query has)
     if len(ranked_scores_and_doc_ids) == 1:
-        resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched one song. Here are its lyrics:".format(query), 'score': "Score", 'rank': "#"}
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched one song. Here are its lyrics:".format(query), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         j = 1
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
@@ -241,7 +294,7 @@ def relevance_songs(query, t_rank):
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
     elif len(ranked_scores_and_doc_ids) <= 10:
-        resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are their lyrics in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are their lyrics in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         j = 1
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
@@ -261,7 +314,7 @@ def relevance_songs(query, t_rank):
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
     else:
-        resultsitem = {'name': "Song Title", 'title': "Your query \"{:s}\" matched {:d} songs. Here are the lyrics of the 10 songs your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are the lyrics of the 10 songs your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
         j = 1
         for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
@@ -354,7 +407,7 @@ def boolean_songs(b_query, hits_list, t_rank):
     # what exactly the title key says depends on the length of the ranked hit (i.e. how many hits the query has)
     i = 0
     if len(hits_list) == 1:
-        resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched one song. Here are its lyrics:".format(b_query), 'rank': "#"}
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched one song. Here are its lyrics:".format(b_query), 'rank': "#"}
         results.append(resultsitem)
         j = 1
         for doc_idx in hits_list:
@@ -374,7 +427,7 @@ def boolean_songs(b_query, hits_list, t_rank):
             results.append(resultsitem)
             i = i+1
     elif len(hits_list) <= 10:
-        resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched {:d} songs. Here are their lyrics:".format(b_query, len(hits_list)), 'rank': "#"}
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are their lyrics:".format(b_query, len(hits_list)), 'rank': "#"}
         results.append(resultsitem)
         j = 1
         for doc_idx in hits_list:
@@ -394,7 +447,7 @@ def boolean_songs(b_query, hits_list, t_rank):
             results.append(resultsitem)
             i = i+1
     else:
-        resultsitem = {'name': "Song Title", 'title': "Your query '{:s}' matched {:d} songs. Here are the lyrics of the first ten songs:".format(b_query, len(hits_list)), 'rank': "#"}
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are the lyrics of the first ten songs:".format(b_query, len(hits_list)), 'rank': "#"}
         results.append(resultsitem)
         j = 1
         for doc_idx in hits_list[0:10]:
@@ -419,16 +472,12 @@ def boolean_songs(b_query, hits_list, t_rank):
 # SOURCE FILE GETTING HANDLED:
 
 songs = "cowboy_songs.txt"
-songs_newlines = list_newlines(songs)   # this is needed for printing the songs on the html page, it has newlines
-songs_nonewlines = list_titles(songs)   # this is where the query search happens, it has no newlines but it does have song titles
-cowboydictionary = []                   # it's a surprise tool that will help us later :)
-                                        # (i.e. there needs to exist a dictionary even before searches for the html to work for some reason)
+songs_newlines = list_newlines(songs)           # this is needed for printing the songs on the html page, it has newlines
+songs_nonewlines = list_titles(songs)           # this is where the query search happens, it has no newlines but it does have song titles
+songs_stemmed = stem_list(songs_nonewlines)     # this is where the query stem search happens, it has no newlines but it does have song titles
+cowboydictionary = []                           # it's a surprise tool that will help us later :)
+                                                # (i.e. there needs to exist a dictionary even before searches for the html to work for some reason)
 
-# VECTORS AND MATRICES:
-
-gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
-g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
-    
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
 #Function search() is associated with the address base URL + "/search"
@@ -477,27 +526,18 @@ def search():
             matches.append("Please check either boolean or relevance search.")
         # If relevance search query exists
         elif r_query:
-            # Search non-stemmed or stemmed articles based on the query's use of quotes
+            # Try relevance search, append an error message if it doesn't work
             # Receive the results as a dictionary
-            if re.search(r'^".*"$', query):
-                try:
-                    query = re.sub(r'^"(.*)"$', r'\1', query)
-                    results = relevance_songs(query, t_rank)
-                    # Make the cowboydictionary refer to the results dictionary
-                    # so that the html code can reference the results' entries:
-                    cowboydictionary = results
-                    # Make the matches list refer to the cowboydictionary
-                    # so that the html code can reference the results' entries:
-                    matches = cowboydictionary
-                except IndexError:
-                    matches.append("Your query \"{:s}\" didn't match any documents.".format(query))
-            else:
-                try:
-                    results = relevance_songs(query, t_rank) # stemmed search comes here later
-                    cowboydictionary = results
-                    matches = cowboydictionary
-                except IndexError:
-                    matches.append("Your query '{:s}' didn't match any documents.".format(query))
+            try:
+                results = relevance_songs(query, t_rank)
+                # Make the cowboydictionary refer to the results dictionary
+                # so that the html code can reference the results' entries:
+                cowboydictionary = results
+                # Make the matches list refer to the cowboydictionary
+                # so that the html code can reference the results' entries:
+                matches = cowboydictionary
+            except IndexError:
+                    matches.append("Your query {:s} didn't match any documents.".format(query))
                 
         # If boolean search query exists
         elif b_query:
@@ -518,7 +558,7 @@ def search():
             hits_list = list(hits_matrix.nonzero()[1])
         
             if len(hits_list) == 0:
-                matches.append("Your query '{:s}' didn't match any songs.".format(query))     # no dictionary to make the html if statement work properly
+                matches.append("Your query {:s} didn't match any songs.".format(query))     # no dictionary to make the html if statement work properly
                 return render_template('index.html', matches=matches)
             else:
                 results = boolean_songs(query, hits_list, t_rank)
