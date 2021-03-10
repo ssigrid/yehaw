@@ -135,7 +135,9 @@ def topic_rank(songnumber):
 # PLOTTING FUNCTION:
 
 def plotting(query, string, j):
-    
+    """ creates a cvs file from the ten keywords and keyword scores of the song j,
+        returns a seaborn striplot """
+
     top10 = topic_rank(string)
     row_list = [["score", "keyword"]]
     for t in top10:
@@ -148,7 +150,7 @@ def plotting(query, string, j):
         writer = csv.writer(file, delimiter= ',')
         writer.writerows(row_list)
 
-    sns.set_theme(style="whitegrid")
+    sns.set_theme(style="dark")
     
     dataset = pd.read_csv("songs.csv")
 
