@@ -450,10 +450,10 @@ def search():
             pass
     
     # Get query from URL variable
-    # Actual query: query, relevance button: r_query, boolean button: b_query
+    # Actual query: query
+    # Query type: r_query = relevance search, b_query = boolean search
     query = request.args.get('query')
-    r_query = request.args.get('r_query')
-    b_query = request.args.get('b_query')
+    query_type = request.args.get('query_type')
     
     #Get TopicRank from URL variable
     t_rank = request.args.get('topicrank')
@@ -469,12 +469,8 @@ def search():
     
     # If query exists
     if query:
-        # If both or neither the relevance or boolean searches has been selected,
-        # append error message to the matches list
-        if not r_query and not b_query or r_query and b_query:
-            matches.append("Please check either boolean or relevance search.")
         # If relevance search query exists
-        elif r_query:
+        if query_type == "r_query":
             # Try relevance search, append an error message if it doesn't work
             # Receive the results as a dictionary
             try:
@@ -489,7 +485,7 @@ def search():
                     matches.append("Your query {:s} didn't match any songs.".format(query))
                 
         # If boolean search query exists
-        elif b_query:
+        elif query_type == "b_query":
             results = boolean_songs(query, t_rank)
             cowboydictionary = results
             matches = cowboydictionary

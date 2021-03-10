@@ -26,60 +26,41 @@
 			<tr>
 				<form>
 					<td>
-						<input type="radio" id="b_query" name="b_query">
-						<label for="b_query">Boolean</label><br>
-
-						<input type="radio" id="r_query" name="r_query">
-						<label for="r_query">Relevance</label><br>
-
+						<input type="text" id="query" name="query" autofocus>
+						
+						<select name="query_type">
+							<option value="r_query">Relevance</option>
+							<option value="b_query">Boolean</option>
+						</select>
+						
+						<input type="submit" value="Search" alt="Search">
+						
 						<input type="checkbox" id="topicrank" name="topicrank">
 						<label for="topicrank">Show Keywords</label>
-					</td>
-					<td class="inputbar">
-						<input type="text" id="query" name="query" autofocus>
-						<input type="submit" value="Search" alt="Search">
 					</td>
 				</form>
 			</tr>
 			<tr>
-				<td> For boolean search, use word "and", "or", and "not" to separate your search words. </td>
-				<td> For exact match, input your relevance search query in double quotes.
-				For stemming, leave the quotes out. </td>
+				<td>
+					<p>Welcome to Team Yehaw's search engine!</p>
+					<p>If you pick relevance search, input your query in double quotes for exact matching
+					or leave the quotes out if you want to search for matching word stems.
+					Using an asterisk(*) in a (quote-less) search matches the asterisk to any character(s),
+					for example 'do*' matches to do, down, and doctrines.</p>
+					<p>For Boolean search, use the words "and", "or", and "not" to separate your search words.</p>
+					<p>Clicking 'Show Keywords' lets you see the ten most important words of every result drawn on a beautiful plot :)</p>
+				</td>
 			</tr>
 		</table>
+		
 		{% if matches %}
 		<!--Reload the page with variable "query" in the URL-->
 		<table class="matchestable">
 			<!--Go through each item in the "matches" variable sent from search() function in the Flask app-->
 			{% for item in matches %}
 				{% if item.name is defined %}
-					{% if item.score is defined %}
-						<tr>
-							<td>{{ item["rank"] }}</td>
-							<td class="articlename">{{ item["name"] }}</td>
-							<td>{{ item["score"] }}</td>
-							<td class="resultentry">
-								{% if item.title is defined %}
-									{{ item["title"] }}
-								{% elif item.title is undefined %}
-									<div class="entrybox">
-									{% for entry in item.text %}
-										{% if loop.first %}
-											<div class="firstentry">{{ entry }}<span class="hovertoview"><br>... [hover to see the rest]</span></div>
-										{% elif not loop.first %}
-											<div class="hiddenentry">{{ entry }}</div>
-										{% endif %}
-									{% endfor %}
-									{% if item["plotimg"] %}
-										<div class="hiddenentry"><br><img src="./static/{{ item['plotimg'] }}" style="width: 100%"></div>
-									{% endif %}
-									</div>
-								{% endif %}
-							</td>
-						</tr>
-					{% elif item.score is undefined %}
 					<tr>
-						<td> {{ item["rank"] }}</td>
+						<td>{{ item["rank"] }}</td>
 						<td class="articlename">{{ item["name"] }}</td>
 						<td class="resultentry">
 							{% if item.title is defined %}
@@ -100,7 +81,6 @@
 							{% endif %}
 						</td>
 					</tr>
-					{% endif %}
 				{% elif item.name is undefined %}
 					<tr>
 						<td><img src="static/cowboy_crying.png" style="width: 3em; margin-right: 15px" id="rotate">{{ item }}</td>
