@@ -132,7 +132,6 @@ def plotting(query, plotlines, j):
         returns a seaborn striplot """
     mlp.use("Agg")
 
-
     top10 = topic_rank(plotlines)
     row_list = [["score", "keyword"]]
     for t in top10:
@@ -190,9 +189,13 @@ def relevance_songs(query, t_rank):
 
     if "*" in query:
         wildcard_vec = wildcard_songs(query)
-        hits = np.dot(wildcard_vec, g3_matrix)
-        ranked_scores_and_doc_ids = \
-        sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
+        if wildcard_vec == None:
+            results.append("Your query \"{:s}\" didn't match any documents.".format(query))
+            return results
+        else:
+            hits = np.dot(wildcard_vec, g3_matrix)
+            ranked_scores_and_doc_ids = \
+            sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     else:
         gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
         g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
@@ -305,6 +308,8 @@ def wildcard_songs(query):
 # BOOLEAN SEARCH FUNCTIONS:
 
 def rewrite_token(t):
+    global td_matrix
+    global t2i
     
     cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
     sparse_matrix = cv.fit_transform(songs_nonewlines)
@@ -504,4 +509,3 @@ def search():
 
     #Render index.html with matches variable
     return render_template('index.html', matches=matches)
-
