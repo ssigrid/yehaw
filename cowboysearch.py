@@ -51,9 +51,6 @@ def list_titles(songfile):
         deletes the newline characters and
         substitutes the <song name="[insert name]"> tag with the name in it
     """
-
-    # List where the rewritten list items go (any other way of doing this messed other functions up for some reason)
-    rewrittensongs = []
     
     openfile = open(songfile, "r", encoding='utf-8')
     readfile = openfile.read()
@@ -95,23 +92,17 @@ def get_song_name(i):
 
 # TOPIC RANK FUNCTION:
 
-def topic_rank(songnumber):
+def topic_rank(plotlines):
     
     """ Extracts words that are most important to the text
         based on the given part-of-speech variable and the index number of the song
     """
     
-    # Initialize list of results
-    results = []
-
-    # Find the correct song to analyze from the list where every song is one item without newlines
-    #singlesong = songs_nonewlines[songnumber]
-    
     # Create a TopicRank extractor
     extractor = pke.unsupervised.TopicRank()
     
     # Load the content of the song
-    extractor.load_document(input=songnumber, language='en', normalization=None)
+    extractor.load_document(input=plotlines, language='en', normalization=None)
     
     # Create a list of stopwords and select candidates
     # based on what checkboxes the search page user selected (e.g. 'PROPN')
@@ -134,11 +125,11 @@ def topic_rank(songnumber):
 
 # PLOTTING FUNCTION:
 
-def plotting(query, string, j):
+def plotting(query, plotlines, j):
     """ creates a cvs file from the ten keywords and keyword scores of the song j,
         returns a seaborn striplot """
 
-    top10 = topic_rank(string)
+    top10 = topic_rank(plotlines)
     row_list = [["score", "keyword"]]
     for t in top10:
         keyword = t[0]
@@ -199,6 +190,9 @@ def relevance_songs(query, t_rank):
         ranked_scores_and_doc_ids = \
         sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     else:
+        gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
+        g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
+        
         # Vectorize query string
         query_vec = gv1.transform([ query ]).tocsc()
 
@@ -208,16 +202,6 @@ def relevance_songs(query, t_rank):
         # Rank hits
         ranked_scores_and_doc_ids = \
         sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
-    
-    # Vectorize query string
-    #query_vec = gv1.transform([ query ]).tocsc()
-
-    # Cosine similarity
-    #hits = np.dot(query_vec, g_matrix)
-
-    # Rank hits
-    #ranked_scores_and_doc_ids = \
-    #sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     
     # Output result
     # Make the relevance search results into dictionary entries
@@ -287,7 +271,6 @@ def relevance_songs(query, t_rank):
                     pltpath = ""
                 resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
                 results.append(resultsitem)
-    print(results)      
     return results      # return dictionary of results
 
 def wildcard_songs(query):
@@ -318,6 +301,14 @@ def wildcard_songs(query):
 # BOOLEAN SEARCH FUNCTIONS:
 
 def rewrite_token(t):
+    
+    cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
+    sparse_matrix = cv.fit_transform(songs_nonewlines)
+    dense_matrix = sparse_matrix.todense()
+    td_matrix = dense_matrix.T
+    terms = cv.get_feature_names()
+    t2i = cv.vocabulary_
+    
     d = {"and": "&", "AND": "&",
      "or": "|", "OR": "|",
      "not": "1 -", "NOT": "1 -",
@@ -423,15 +414,6 @@ cowboydictionary = []                   # it's a surprise tool that will help us
 
 # VECTORS AND MATRICES:
 
-cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
-sparse_matrix = cv.fit_transform(songs_nonewlines)
-dense_matrix = sparse_matrix.todense()
-td_matrix = dense_matrix.T
-terms = cv.get_feature_names()
-t2i = cv.vocabulary_
-
-gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
-g_matrix = gv1.fit_transform(songs_nonewlines).T.tocsr()
 gv2 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
 g_matrix_stem = gv2.fit_transform(songs_nonewlines).T.tocsr()
     
@@ -500,7 +482,6 @@ def search():
             results = []
         
             rewritten_query = rewrite_query(query)
-            sparse_td_matrix = sparse_matrix.T.tocsr()
         
             try:
                 hits_matrix = eval(rewritten_query)
@@ -519,55 +500,6 @@ def search():
                 results = boolean_songs(query, hits_list, t_rank)
                 cowboydictionary = results
                 matches = cowboydictionary
-    
-    # NOT AT USE ATM:
-    # -------------------------------
-    
-    #Get part-of-speech from URL variable
-    n_pos = request.args.get('noun')
-    propn_pos = request.args.get('propn')
-    adj_pos = request.args.get('adj')
-    
-    #Get index number of the song for TopicRank analysis from URL variable
-    posnum = request.args.get('posnum')
-    
-    # Finding out what the final pos set used for TopicRank extraction will be, based on which x_pos variables the url query gave
-    if n_pos:
-        if propn_pos:
-            if adj_pos:
-                pos = {'NOUN', 'PROPN', 'ADJ'}
-            else:
-                pos = {'NOUN', 'PROPN'}
-        elif adj_pos:
-            pos = {'NOUN', 'ADJ'}
-        else:
-            pos = {'NOUN'}
-        if not posnum:
-            matches.append("Please input the number of the song you want to analyze.")
-    elif propn_pos:
-        if adj_pos:
-            pos = {'PROPN', 'ADJ'}
-        else:
-            pos = {'PROPN'}
-        if not posnum:
-            matches.append("Please input the number of the song you want to analyze.")
-    elif adj_pos:
-        pos = {'ADJ'}
-        if not posnum:
-            matches.append("Please input the number of the song you want to analyze.")
-    
-    # If the user inputed a number and checked one of the pos checkboxes, run topic_rank to get results
-    if posnum:
-        songnumber = int(posnum)
-        songnumber = songnumber - 1
-        if n_pos or propn_pos or adj_pos:
-            results = topic_rank(pos, songnumber)
-            cowboydictionary = results
-            matches = cowboydictionary
-        else:
-            matches.append("Please check one of the boxes.")
-
-    # -------------------------------
 
     #Render index.html with matches variable
     return render_template('index.html', matches=matches)
