@@ -157,8 +157,8 @@ def topic_rank(plotlines):
 
 # PLOTTING FUNCTION:
 
-def plotting(query, plotlines, j):
-    """ creates a cvs file from the ten keywords and keyword scores of the song j,
+def plotting(query, plotlines, i):
+    """ creates a cvs file from the ten keywords and keyword scores of the song i,
         returns a seaborn striplot """
     mlp.use("Agg")
 
@@ -210,11 +210,11 @@ def plotting(query, plotlines, j):
     if " " in query:                    # technically space is not an unacceotable symbol
         query = query.replace(" ", "_") # but spaces in file names can sometimes cause problems
     
-    # Make j into string so it can be used in image url
-    new_j = str(j)
+    # Make i into string so it can be used in image url
+    new_i = str(i)
     
     # Image url
-    pltpath = f'{query}_{new_j}_plot.png'
+    pltpath = f'{query}_{new_i}_plot.png'
     
     # Save the figure
     try:
@@ -226,6 +226,33 @@ def plotting(query, plotlines, j):
         pltpath = "cowboy_crying.png"
     
     return pltpath
+
+# WILDCARD VECTORIZER FUNCTION:
+
+def wildcard_songs(query):
+    global g3_matrix
+    
+    query_len = len(query.split())
+    gv3 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", ngram_range=(query_len, query_len))
+    g3_matrix = gv3.fit_transform(songs_nonewlines).T.tocsr()
+    terms3 = gv3.get_feature_names()
+
+    # Replace the wildcard with a regex pattern matching 0 or more characters:
+    #query_no_wc = query.replace("*", ".*")
+    query_replace_wc = re.sub(r'\*','.*', query)
+
+    # Compile a regex pattern based on the query word:
+    wildcard_pattern = re.compile(query_replace_wc)
+
+    # Find all matching words in the vocabulary and form a new query word list:
+    matching = [w for w in terms3 if re.fullmatch(wildcard_pattern, w)]
+    if matching:
+        new_query_string = " ".join(matching)
+        wildcard_vec = gv3.transform([new_query_string]).tocsc()
+    else:
+        return None
+
+    return wildcard_vec
 
 # RELEVANCE SEARCH FUNCTION:
 
@@ -267,17 +294,24 @@ def relevance_songs(query, t_rank):
         sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     
     # Output result
-    # Make the relevance search results into dictionary entries
-    # where name=song name, text=lyrics, score=relevance search score, rank=number of song in the results,
-    # and append them into the results list:
     
     # The first entry is different and has 'title' as a key instead of 'text' so it gets printed properly on the html page,
     # what exactly the title key says depends on the length of the ranked hit (i.e. how many hits the query has)
     if len(ranked_scores_and_doc_ids) == 1:
         resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched one song. Here are its lyrics:".format(query), 'score': "Score", 'rank': "#"}
         results.append(resultsitem)
-        j = 1
-        for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
+    elif len(ranked_scores_and_doc_ids) <= 10:
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are their lyrics in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
+        results.append(resultsitem)
+    else:
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are the lyrics of the 10 songs your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
+        results.append(resultsitem)
+        
+    # Make the relevance search results into dictionary entries
+    # where name=song name, text=lyrics, score=relevance search score, rank=number of song in the results,
+    # and append them into the results list
+    for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
+        if 0 <= i <= 9:
             roundedscore = "{:.4f}".format(score)   # we're only printing four decimals now
             newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
@@ -287,79 +321,13 @@ def relevance_songs(query, t_rank):
                 newlines = newlines[1:] # no empty line at the beginning
             if t_rank == True:
                 plotlines = songs_nonewlines[doc_idx]
-                pltpath = plotting(query, plotlines, j)
-                j = j + 1
+                pltpath = plotting(query, plotlines, i)
             else:
                 pltpath = ""
             resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
             results.append(resultsitem)
-    elif len(ranked_scores_and_doc_ids) <= 10:
-        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are their lyrics in order of relevance:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
-        results.append(resultsitem)
-        j = 1
-        for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
-            roundedscore = "{:.4f}".format(score)
-            newlines = songs_newlines[doc_idx]
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = newlines.split("\n")
-            if len(newlines[0]) == 0:
-                newlines = newlines[1:] # no empty line at the beginning
-            if t_rank == True:
-                plotlines = songs_nonewlines[doc_idx]
-                pltpath = plotting(query, plotlines, j)
-                j = j + 1
-            else:
-                pltpath = ""
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
-            results.append(resultsitem)
-    else:
-        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are the lyrics of the 10 songs your query matched the best:".format(query, len(ranked_scores_and_doc_ids)), 'score': "Score", 'rank': "#"}
-        results.append(resultsitem)
-        j = 1
-        for i, (score, doc_idx) in enumerate(ranked_scores_and_doc_ids):
-            if 0 <= i <= 9:
-                roundedscore = "{:.4f}".format(score)
-                newlines = songs_newlines[doc_idx]
-                newlines = re.sub(r'\n\n\n', r'\n', newlines)
-                newlines = re.sub(r'\n\n\n', r'\n', newlines)
-                newlines = newlines.split("\n")
-                if len(newlines[0]) == 0:
-                    newlines = newlines[1:] # no empty line at the beginning
-                if t_rank == True:
-                    plotlines = songs_nonewlines[doc_idx]
-                    pltpath = plotting(query, plotlines, j)
-                    j = j + 1
-                else:
-                    pltpath = ""
-                resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
-                results.append(resultsitem)
+
     return results      # return dictionary of results
-
-def wildcard_songs(query):
-    global g3_matrix
-    
-    query_len = len(query.split())
-    gv3 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", ngram_range=(query_len, query_len))
-    g3_matrix = gv3.fit_transform(songs_nonewlines).T.tocsr()
-    terms3 = gv3.get_feature_names()
-
-    # Replace the wildcard with a regex pattern matching 0 or more characters:
-    #query_no_wc = query.replace("*", ".*")
-    query_replace_wc = re.sub(r'\*','.*', query)
-
-    # Compile a regex pattern based on the query word:
-    wildcard_pattern = re.compile(query_replace_wc)
-
-    # Find all matching words in the vocabulary and form a new query word list:
-    matching = [w for w in terms3 if re.fullmatch(wildcard_pattern, w)]
-    if matching:
-        new_query_string = " ".join(matching)
-        wildcard_vec = gv3.transform([new_query_string]).tocsc()
-    else:
-        return None
-
-    return wildcard_vec
 
 # BOOLEAN SEARCH FUNCTIONS:
 
