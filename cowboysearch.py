@@ -258,7 +258,7 @@ def wildcard_songs(query):
 
 def relevance_songs(query, t_rank):
 
-    """ Relevance search (non-stem, non-n-gram)
+    """ Relevance search for either wildcard, exact match or matching stems
     """
     
     # Initialize list of results
@@ -268,7 +268,7 @@ def relevance_songs(query, t_rank):
         # Vectorize query string
         wildcard_vec = wildcard_songs(query)
         if wildcard_vec == None:
-            results.append("Your query \"{:s}\" didn't match any documents.".format(query))
+            results.append("Your query {:s} didn't match any songs.".format(query))
             return results
         else:
             # Cosine similarity
@@ -359,81 +359,62 @@ def rewrite_token(t):
 def rewrite_query(query): # rewrite every token in the query
     return " ".join(rewrite_token(t) for t in query.split()) # splits the query into words and returns the rewritten, rejoined query
 
-def boolean_songs(b_query, hits_list, t_rank):
+def boolean_songs(query, t_rank):
     
     """ Boolean search (exact match, non-n-gram)
     """
     
     # Initialize list of results
     results = []
+        
+    rewritten_query = rewrite_query(query)
+
+    # Try evaluating the rewritten query
+    # If there's a syntax error, append it into the results list
+    try:
+        hits_matrix = eval(rewritten_query)
+    except SyntaxError:
+        results.append("SyntaxError: If your search consists of multiple words, remember to separate them with 'and' or 'or'. Also make sure you write 'and/or not' instead of just 'not'.")
+        return results
+            
+    hits_list = list(hits_matrix.nonzero()[1])
+    
+    # Output result
+    
+    # The first entry is different and has 'title' as a key instead of 'text' so it gets printed properly on the html page,
+    # what exactly the title key says depends on the length of the ranked hits (i.e. how many hits the query has)
+    if len(hits_list) == 0:
+        results.append("Your query {:s} didn't match any songs.".format(query))     # no dictionary to make the html if statement work properly
+        return results
+    elif len(hits_list) == 1:
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched one song. Here are its lyrics:".format(query), 'rank': "#"}
+        results.append(resultsitem)
+    elif len(hits_list) <= 10:
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are their lyrics:".format(query, len(hits_list)), 'rank': "#"}
+        results.append(resultsitem)
+    else:
+        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are the lyrics of the first ten songs:".format(query, len(hits_list)), 'rank': "#"}
+        results.append(resultsitem)
     
     # Make the boolean search results into dictionary entries
     # where name=song name, text=lyrics, rank=number of song in the results,
     # and append them into the results list:
-    
-    # The first entry is different and has 'title' as a key instead of 'text' so it gets printed properly on the html page,
-    # what exactly the title key says depends on the length of the ranked hit (i.e. how many hits the query has)
     i = 0
-    if len(hits_list) == 1:
-        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched one song. Here are its lyrics:".format(b_query), 'rank': "#"}
+    for doc_idx in hits_list[0:10]:
+        newlines = songs_newlines[doc_idx]
+        newlines = re.sub(r'\n\n\n', r'\n', newlines)
+        newlines = re.sub(r'\n\n\n', r'\n', newlines)
+        newlines = newlines.split("\n")
+        if len(newlines[0]) == 0:
+            newlines = newlines[1:] # no empty line at the beginning
+        if t_rank == True:
+            plotlines = songs_nonewlines[doc_idx]
+            pltpath = plotting(query, plotlines, i)
+        else:
+            pltpath = ""
+        resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
         results.append(resultsitem)
-        j = 1
-        for doc_idx in hits_list:
-            newlines = songs_newlines[doc_idx]
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = newlines.split("\n")
-            if len(newlines[0]) == 0:
-                newlines = newlines[1:] # no empty line at the beginning
-            if t_rank == True:
-                plotlines = songs_nonewlines[doc_idx]
-                pltpath = plotting(b_query, plotlines, j)
-                j = j + 1
-            else:
-                pltpath = ""
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
-            results.append(resultsitem)
-            i = i+1
-    elif len(hits_list) <= 10:
-        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are their lyrics:".format(b_query, len(hits_list)), 'rank': "#"}
-        results.append(resultsitem)
-        j = 1
-        for doc_idx in hits_list:
-            newlines = songs_newlines[doc_idx]
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = newlines.split("\n")
-            if len(newlines[0]) == 0:
-                newlines = newlines[1:] # no empty line at the beginning
-            if t_rank == True:
-                plotlines = songs_nonewlines[doc_idx]
-                pltpath = plotting(b_query, plotlines, j)
-                j = j + 1
-            else:
-                pltpath = ""
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
-            results.append(resultsitem)
-            i = i+1
-    else:
-        resultsitem = {'name': "Song Title", 'title': "Your query {:s} matched {:d} songs. Here are the lyrics of the first ten songs:".format(b_query, len(hits_list)), 'rank': "#"}
-        results.append(resultsitem)
-        j = 1
-        for doc_idx in hits_list[0:10]:
-            newlines = songs_newlines[doc_idx]
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
-            newlines = newlines.split("\n")
-            if len(newlines[0]) == 0:
-                newlines = newlines[1:] # no empty line at the beginning
-            if t_rank == True:
-                plotlines = songs_nonewlines[doc_idx]
-                pltpath = plotting(b_query, plotlines, j)
-                j = j + 1
-            else:
-                pltpath = ""
-            resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'rank': i+1, 'plotimg': pltpath}
-            results.append(resultsitem)
-            i = i+1
+        i = i+1
 
     return results      # return dictionary of results
 
@@ -505,33 +486,13 @@ def search():
                 # so that the html code can reference the results' entries:
                 matches = cowboydictionary
             except IndexError:
-                    matches.append("Your query {:s} didn't match any documents.".format(query))
+                    matches.append("Your query {:s} didn't match any songs.".format(query))
                 
         # If boolean search query exists
         elif b_query:
-        
-            #Initialize list of match results
-            results = []
-        
-            rewritten_query = rewrite_query(query)
-        
-            try:
-                hits_matrix = eval(rewritten_query)
-            # If there's a syntax error, append it into the matches list and
-            # immediately return that list for the html page so its if statement works properly
-            except SyntaxError:
-                matches.append("SyntaxError: If your search consists of multiple words, remember to separate them with 'and' or 'or'. Also make sure you write 'and/or not' instead of just 'not'.")
-                return render_template('index.html', matches=matches)
-            
-            hits_list = list(hits_matrix.nonzero()[1])
-        
-            if len(hits_list) == 0:
-                matches.append("Your query {:s} didn't match any songs.".format(query))     # no dictionary to make the html if statement work properly
-                return render_template('index.html', matches=matches)
-            else:
-                results = boolean_songs(query, hits_list, t_rank)
-                cowboydictionary = results
-                matches = cowboydictionary
+            results = boolean_songs(query, t_rank)
+            cowboydictionary = results
+            matches = cowboydictionary
 
     #Render index.html with matches variable
     return render_template('index.html', matches=matches)
