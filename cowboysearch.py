@@ -192,16 +192,32 @@ def relevance_songs(query, t_rank):
     
     # Initialize list of results
     results = []
+
+    if "*" in query:
+        wildcard_vec = wildcard_songs(query)
+        hits = np.dot(wildcard_vec, g3_matrix)
+        ranked_scores_and_doc_ids = \
+        sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
+    else:
+        # Vectorize query string
+        query_vec = gv1.transform([ query ]).tocsc()
+
+        # Cosine similarity
+        hits = np.dot(query_vec, g_matrix)
+
+        # Rank hits
+        ranked_scores_and_doc_ids = \
+        sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     
     # Vectorize query string
-    query_vec = gv1.transform([ query ]).tocsc()
+    #query_vec = gv1.transform([ query ]).tocsc()
 
     # Cosine similarity
-    hits = np.dot(query_vec, g_matrix)
+    #hits = np.dot(query_vec, g_matrix)
 
     # Rank hits
-    ranked_scores_and_doc_ids = \
-    sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
+    #ranked_scores_and_doc_ids = \
+    #sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
     
     # Output result
     # Make the relevance search results into dictionary entries
@@ -271,8 +287,33 @@ def relevance_songs(query, t_rank):
                     pltpath = ""
                 resultsitem = {'name': get_song_name(doc_idx), 'text': newlines, 'score': roundedscore, 'rank': i+1, 'plotimg': pltpath}
                 results.append(resultsitem)
-          
+    print(results)      
     return results      # return dictionary of results
+
+def wildcard_songs(query):
+    global g3_matrix
+    
+    query_len = len(query.split())
+    gv3 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", ngram_range=(query_len, query_len))
+    g3_matrix = gv3.fit_transform(songs_nonewlines).T.tocsr()
+    terms3 = gv3.get_feature_names()
+
+    # Replace the wildcard with a regex pattern matching 0 or more characters:
+    #query_no_wc = query.replace("*", ".*")
+    query_replace_wc = re.sub(r'\*','.*', query)
+
+    # Compile a regex pattern based on the query word:
+    wildcard_pattern = re.compile(query_replace_wc)
+
+    # Find all matching words in the vocabulary and form a new query word list:
+    matching = [w for w in terms3 if re.fullmatch(wildcard_pattern, w)]
+    if matching:
+        new_query_string = " ".join(matching)
+        wildcard_vec = gv3.transform([new_query_string]).tocsc()
+    else:
+        return None
+
+    return wildcard_vec
 
 # BOOLEAN SEARCH FUNCTIONS:
 
