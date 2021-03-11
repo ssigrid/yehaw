@@ -21,10 +21,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from bs4 import BeautifulSoup
 from sys import platform
 
+
+""" Makes a search engine to find the best song for all your cowboy desires, pardner :)"""
 #Initialize Flask instance
 app = Flask(__name__)
 
-# BOOK EDITING FUNCTIONS:
+# SONG EDITING FUNCTIONS:
 
 def list_newlines(file):
 
@@ -74,6 +76,10 @@ def list_titles(songfile):
 # STEMMING FUNCTIONS:
 
 def stemmer(stringoftext):
+    """ Takes a string, tokenizes it, and stems every word to basic form.
+        Returns the stemmed string.
+    """
+    
     from nltk.stem import PorterStemmer
     from nltk.tokenize import sent_tokenize, word_tokenize
     porter = PorterStemmer()
@@ -97,7 +103,8 @@ def stem_list(listofsongs):
 
     return stemlist     # returns a list where every song is an item, name included but without newline characters, text has been stemmed
 
-# GET THE SONG NAME FOR RESULTS:
+
+# FIND THE SONG NAME FOR RESULTS:
 
 def get_song_name(i):
 
@@ -122,12 +129,13 @@ def get_song_name(i):
     
     return songname     # returns the name of the song as string
 
+
 # TOPIC RANK FUNCTION:
 
 def topic_rank(plotlines):
     
-    """ Extracts words that are most important to the text
-        based on the given part-of-speech variable and the index number of the song
+    """ Extracts the most important words from the text
+        with the default part-of-speech variables." 
     """
     
     # Create a TopicRank extractor
@@ -136,8 +144,7 @@ def topic_rank(plotlines):
     # Load the content of the song
     extractor.load_document(input=plotlines, language='en', normalization=None)
     
-    # Create a list of stopwords and select candidates
-    # based on what checkboxes the search page user selected (e.g. 'PROPN')
+    # Create a list of stopwords and select candidates using the default POS. 
     # TopicRank selects the longest sequences of the given parts-of-speech as candidates
     # and ignores punctuation marks or stopwords as candidates
     stoplist = list(string.punctuation)
@@ -150,7 +157,7 @@ def topic_rank(plotlines):
     extractor.candidate_weighting(threshold=0.74, method='average')
     
     # Get the 10-highest scored candidates as keyphrases
-    # Keyphrases come in tuples (iirc) where the first one is the keyword/phrase and the second one is its score
+    # Keyphrases come in tuples where the first one is the keyword/phrase and the second one is its score
     keyphrases = extractor.get_n_best(n=10)
     
     return keyphrases   # return the keyphrases and their scores as a list of tuples
@@ -158,8 +165,9 @@ def topic_rank(plotlines):
 # PLOTTING FUNCTION:
 
 def plotting(query, plotlines, i):
-    """ creates a cvs file from the ten keywords and keyword scores of the song i,
-        returns a seaborn striplot """
+    """ Makes a cvs file from the ten keywords and keyword scores of the song (i),
+        creates a seaborn striplot from the cvs file.
+    """
     mlp.use("Agg")
 
     top10 = topic_rank(plotlines)
@@ -178,7 +186,6 @@ def plotting(query, plotlines, i):
     
     dataset = pd.read_csv("songs.csv")
 
-    # Make the PairGrid
     g = sns.PairGrid(dataset.sort_values("score", ascending=False),
                     x_vars=None, y_vars=["keyword"],
                     height=5, aspect=1)
@@ -188,15 +195,10 @@ def plotting(query, plotlines, i):
     g.map(sns.stripplot, size=10, orient="h", jitter=False,
         palette="crest", linewidth=1, edgecolor="w")
 
-    # Use the same x axis limits on all columns and add better labels
     g.set(xlim=(0), xlabel="Relevance", ylabel="")
 
+    # Make the grid horizontal
     for ax in g.axes.flat:
-
-    # Set a different title for each axes
-        #ax.set(title=title)
-
-    # Make the grid horizontal instead of vertical
         ax.xaxis.grid(False)
         ax.yaxis.grid(True)
 
@@ -207,7 +209,7 @@ def plotting(query, plotlines, i):
         query = query.replace("*", "")
     if '"' in query:
         query = query.replace('"', '')
-    if " " in query:                    # technically space is not an unacceotable symbol
+    if " " in query:                    # technically space is not an unacceptable symbol
         query = query.replace(" ", "_") # but spaces in file names can sometimes cause problems
     
     # Make i into string so it can be used in image url
@@ -227,24 +229,26 @@ def plotting(query, plotlines, i):
     
     return pltpath
 
+
 # WILDCARD VECTORIZER FUNCTION:
 
 def wildcard_songs(query):
+    """ Takes a query and makes vectors and matrixes out of it.
+        Returns a matching vector if there is one. 
+    """
     global g3_matrix
-    
+    # Makes the vectors of the songs and the query based on the query's length
     query_len = len(query.split())
     gv3 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", ngram_range=(query_len, query_len))
     g3_matrix = gv3.fit_transform(songs_nonewlines).T.tocsr()
     terms3 = gv3.get_feature_names()
 
-    # Replace the wildcard with a regex pattern matching 0 or more characters:
-    #query_no_wc = query.replace("*", ".*")
     query_replace_wc = re.sub(r'\*','.*', query)
 
-    # Compile a regex pattern based on the query word:
     wildcard_pattern = re.compile(query_replace_wc)
 
-    # Find all matching words in the vocabulary and form a new query word list:
+    # Returns nothing if there isn't a match between vectors
+    # otherwise returns the match. 
     matching = [w for w in terms3 if re.fullmatch(wildcard_pattern, w)]
     if matching:
         new_query_string = " ".join(matching)
@@ -254,11 +258,12 @@ def wildcard_songs(query):
 
     return wildcard_vec
 
+
 # RELEVANCE SEARCH FUNCTION:
 
 def relevance_songs(query, t_rank):
 
-    """ Relevance search for either wildcard, exact match or matching stems
+    """ Relevance search for either wildcard, exact match, or matching stems
     """
     
     # Initialize list of results
@@ -276,6 +281,9 @@ def relevance_songs(query, t_rank):
             # Rank hits
             ranked_scores_and_doc_ids = \
             sorted(zip(np.array(hits[hits.nonzero()])[0], hits.nonzero()[1]), reverse=True)
+    # if there's quotes at the beginning and end of query,
+    # removes quotes, creates a vector out of the query,
+    # and makes a matrix out of the file songs_nonewlines.
     elif re.match(r'^"(.*)"$', query):
         query_noquotes = re.sub(r'^"(.*)"$', r'\1', query)
         gv1 = TfidfVectorizer(lowercase=True, sublinear_tf=True, use_idf=True, norm="l2", token_pattern=r"(?u)\b\w+\b")
@@ -315,10 +323,13 @@ def relevance_songs(query, t_rank):
             roundedscore = "{:.4f}".format(score)   # we're only printing four decimals now
             newlines = songs_newlines[doc_idx]
             newlines = re.sub(r'\n\n\n', r'\n', newlines)   # getting rid of some extra newlines
-            newlines = re.sub(r'\n\n\n', r'\n', newlines)
+            newlines = re.sub(r'\n\n\n', r'\n', newlines)   # there's a lot of them so...
             newlines = newlines.split("\n")
             if len(newlines[0]) == 0:
                 newlines = newlines[1:] # no empty line at the beginning
+
+            # if checkbox for keywords has been checked, makes a plot 
+            # and returns the path for plot
             if t_rank == True:
                 plotlines = songs_nonewlines[doc_idx]
                 pltpath = plotting(query, plotlines, i)
@@ -329,12 +340,14 @@ def relevance_songs(query, t_rank):
 
     return results      # return dictionary of results
 
+
 # BOOLEAN SEARCH FUNCTIONS:
 
 def rewrite_token(t):
     global td_matrix
     global t2i
     
+    # makes matrixes
     cv = CountVectorizer(lowercase=True, binary=True, token_pattern=r"(?u)\b\w+\b")
     sparse_matrix = cv.fit_transform(songs_nonewlines)
     dense_matrix = sparse_matrix.todense()
@@ -418,6 +431,7 @@ def boolean_songs(query, t_rank):
 
     return results      # return dictionary of results
 
+
 # SOURCE FILE GETTING HANDLED:
 
 songs = "cowboy_songs.txt"
@@ -426,6 +440,7 @@ songs_nonewlines = list_titles(songs)           # this is where the query search
 songs_stemmed = stem_list(songs_nonewlines)     # this is where the query stem search happens, it has no newlines but it does have song titles
 cowboydictionary = []                           # it's a surprise tool that will help us later :)
                                                 # (i.e. there needs to exist a dictionary even before searches for the html to work for some reason)
+
 
 # SEARCH FUNCTION WORKING AS THE 'MAIN' FUNCTION:
 
