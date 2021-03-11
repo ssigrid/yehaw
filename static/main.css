@@ -55,40 +55,58 @@ footer {
     margin: 2%;
 }
 
+tr {
+    width: 100&;
+}
+
 td {
     padding: 15px;
 }
 
-.articlename {
+.songname {
     font-size: 18px;
 	vertical-align: text-top;
 }
 
-.resultentry {
+.box4songs {
     width: 60%;
     border-bottom: 1px solid rgb(51, 38, 28);
 }
 
-.firstentry {
+.click4lyrics {
+	max-width: 100%;
+	padding: 5px;
+	background-color: rgb(247, 122, 122);
+	border: 2px solid rgb(161, 48, 48);
+	border-radius: 5px;
+	text-align: center;
+	outline:none;
+	cursor:pointer;
+}
+
+.hiddenbox {
+	display: none;
+	width: 100%;
+}
+
+.click4lyrics:focus {
+	margin-bottom: 2%;
+}
+
+.click4lyrics:focus + .hiddenbox {
+	display: inline-block;
+}
+
+.lyrics {
     display: inline-block;
 	width: 100%;
 }
 
-.hiddenentry {
-    display: none;
-	width: 100%;
-}
-
-.hovertoview {
-    color: powderblue;
-}
-
-.entrybox:hover .hiddenentry {
+.plot {
     display: inline-block;
-}
-
-.entrybox:hover .hovertoview {
-    display: none;
+	width: 100%;
+	border: 2px solid rgb(161, 48, 48);
+	border-radius: 5px;
 }
 
 input[type=text] {
@@ -239,24 +257,14 @@ header a:active {
 	background-color: rgb(161, 48, 48);
 }
 
-/* The following parts don't work but they're here in case the problem was simply with the browser and not the code */
-
-#rotate {
-	-webkit-transition: -webkit-transform .8s ease-in-out;
-			transition:         transform .8s ease-in-out;
-}
-	
-#rotate:hover {
-	-webkit-transform: rotate(360deg);
-			transform: rotate(360deg);
-}
+/* The rotating cowboys are back!!! :) */
 
 /* Makes the article cowboy rotate infinitely when you hover mouse over it */
 	@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
 	@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 	@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
-#rotate:hover {
+.rotate:hover {
 	-webkit-animation:spin 1s linear infinite;
 	-moz-animation:spin 1s linear infinite;
 	animation:spin 1s linear infinite;

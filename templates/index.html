@@ -18,9 +18,9 @@
 		
 		<div class="content_div">
 		<header>
-			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
+			<img src="static/pensive_cowboy.png" style="width: 1em" class="rotate">
 			<a href="/search">Search from 153 Cowboy Songs</a>
-			<img src="static/pensive_cowboy.png" style="width: 1em" id="rotate">
+			<img src="static/pensive_cowboy.png" style="width: 1em" class="rotate">
 		</header>
 		<table>
 			<tr>
@@ -60,30 +60,37 @@
 			{% for item in matches %}
 				{% if item.name is defined %}
 					<tr>
-						<td>{{ item["rank"] }}</td>
-						<td class="articlename">{{ item["name"] }}</td>
-						<td class="resultentry">
+						<td class="songname">{{ item["rank"] }}</td>
+						<td class="songname">{{ item["name"] }}</td>
+						<td class="box4songs">
 							{% if item.title is defined %}
 								{{ item["title"] }}
-							{% elif item.title is undefined %}
-								<div class="entrybox">
+							{% endif %}
+							{% if item.title is undefined %}
+								<div class="click4lyrics" tabindex="1">Click here to see the lyrics<br>(click somewhere else to hide them)</div>
+								<div class="hiddenbox">
 									{% for entry in item.text %}
-										{% if loop.first %}
-											<div class="firstentry">{{ entry }}<span class="hovertoview"><br>... [hover to see the rest]</span></div>
-										{% elif not loop.first %}
-											<div class="hiddenentry">{{ entry }}</div>
-										{% endif %}
+										<div class="lyrics">{{ entry }}</div>
 									{% endfor %}
-									{% if item["plotimg"] %}
-										<div class="hiddenentry"><br><img src="./static/{{ item['plotimg'] }}" style="width: 100%"></div>
-									{% endif %}
 								</div>
 							{% endif %}
 						</td>
 					</tr>
+				{% if item["plotimg"] %}
+					<tr>
+						<td class="songname"></td>
+						<td class="songname"></td>
+						<td class="box4songs">
+							<div class="click4lyrics" tabindex="1">Click here to see the plot<br>(click somewhere else to hide it)</div>
+							<div class="hiddenbox"><img src="./static/{{ item['plotimg'] }}" class="plot"></div>
+						</td>
+					</tr>
+				{% endif %}
 				{% elif item.name is undefined %}
 					<tr>
-						<td><img src="static/cowboy_crying.png" style="width: 3em; margin-right: 15px" id="rotate">{{ item }}</td>
+						<td style="width: 10%"><img src="static/cowboy_crying.png" style="width: 100%" class="rotate"></td>
+						<td style="text-align: center">{{ item }}</td>
+						<td style="width: 10%"><img src="static/cowboy_crying.png" style="width: 100%" class="rotate"></td>
 					</tr>
 				{% endif %}
 			<!--End for loop-->
